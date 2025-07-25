@@ -1,10 +1,12 @@
+//import 'package:fitjourney/training/pages/training_plan_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'features/auth/presentation/bloc/auth_event.dart';
-import 'features/auth/presentation/pages/login_page.dart';
+import 'features/auth/bloc/auth_event.dart';
+import 'features/auth/pages/login_page.dart';
 
-import 'features/auth/presentation/bloc/auth_bloc.dart';
-import 'features/auth/presentation/bloc/auth_state.dart';
+import 'features/auth/bloc/auth_bloc.dart';
+import 'features/auth/bloc/auth_state.dart';
+import 'home/pages/home_page.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -36,6 +38,17 @@ class MyApp extends StatelessWidget {
                         context.read<AuthBloc>().add(LoggedOut());
                       },
                       child: const Text('Logout'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => HomePage(),
+                          ),
+                        );
+                      },
+                      child: const Text('Home'),
                     ),
                   ],
                 ),

@@ -1,40 +1,32 @@
+import 'package:fitjourney/features/auth/pages/register_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
+import 'forgot_password_page.dart';
 
-class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmController = TextEditingController();
 
-  void _register() {
+  void _login() {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
-    final confirm = _confirmController.text.trim();
-
-    if (password != confirm) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Passwords do not match")),
-      );
-      return;
-    }
-
-    context.read<AuthBloc>().add(RegisterRequested(email, password));
+    context.read<AuthBloc>().add(LoggedIn(email, password));// gửi sự kiện đăng nhập đến AuthBloc
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('FitJourney - Register')),
+      appBar: AppBar(title: const Text('FitJourney - Login')),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
@@ -60,16 +52,30 @@ class _RegisterPageState extends State<RegisterPage> {
                   decoration: const InputDecoration(labelText: 'Password'),
                   obscureText: true,
                 ),
-                TextField(
-                  controller: _confirmController,
-                  decoration: const InputDecoration(labelText: 'Confirm Password'),
-                  obscureText: true,
-                ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: _register,
-                  child: const Text('Register'),
+                  onPressed: _login,
+                  child: const Text('Login'),
                 ),
+
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const RegisterPage()),
+                    );
+                  },
+                  child: const Text("Don't have an account? Register"),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ForgotPasswordPage()),
+                    );
+                  },
+                  child: Text("Quên mật khẩu?"),
+                ),
+
               ],
             ),
           );

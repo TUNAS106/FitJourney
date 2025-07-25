@@ -27,11 +27,20 @@ class LoggedOut extends AuthEvent {}
 
 //sự kiện khi người dùng yêu cầu đăng ký, chứa email và mật khẩu
 class RegisterRequested extends AuthEvent {
+  final String name;
+  final String gender;
+  final int age;
   final String email;
   final String password;
 
-  const RegisterRequested(this.email, this.password);
+  const RegisterRequested({
+    required this.name,
+    required this.gender,
+    required this.age,
+    required this.email,
+    required this.password,
+  });
 
-  @override
-  List<Object?> get props => [email, password];
 }
+
+
