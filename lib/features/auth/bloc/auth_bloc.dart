@@ -16,41 +16,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LoggedOut>(_onLoggedOut);
     on<RegisterRequested>(_onRegisterRequested);
   }
-  // hàm này sẽ lấy thông tin người dùng từ Firestore dựa trên uid và email
-  /*Future<User> _fetchUserFromFirestore(String uid, String email) async {
-    final doc = await db.collection('users').doc(uid).get();
-
-    if (doc.exists) {
-      final data = doc.data()!;
-      return User(
-        id: uid,
-        name: data['name'] ?? '',
-        email: email,
-        gender: data['gender'] ?? '',
-        age: data['age'] ?? 0,
-        avatarUrl: data['avatarUrl'] ?? '',
-      );
-    } else {
-      // Nếu user không tồn tại trong Firestore, tạo bản ghi mặc định
-      final user = User(
-        id: uid,
-        name: '',
-        email: email,
-        gender: '',
-        age: 0,
-        avatarUrl: '',
-      );
-      // Lưu user mới vào Firestore
-      await db.collection('users').doc(uid).set({
-        'name': user.name,
-        'email': user.email,
-        'gender': user.gender,
-        'age': user.age,
-        'avatarUrl': user.avatarUrl,
-      });
-      return user;
-    }
-  }*/
 
   // Hàm này sẽ được gọi khi ứng dụng bắt đầu, kiểm tra trạng thái đăng nhập
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
@@ -169,6 +134,38 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       print('Error fetching user from Firestore: $e');
       return null;
+    }
+  }
+
+  Future<void> updateUserInfoDirect({
+    required String name,
+    required String email,
+    required String gender,
+    required int age,
+  }) async {
+    final uid = _firebaseAuth.currentUser?.uid;
+    if (uid != null) {
+      try {
+        await db.collection('users').doc(uid).update({
+          'name': name,
+          'email': email,
+          'gender': gender,
+          'age': age,
+        });
+      } catch (e) {
+        print('Error updating user info: $e');
+      }
+    } else {
+      print('No user UID found');
+    }
+  }
+  Future<void> reloadCurrentUser() async {
+    final uid = _firebaseAuth.currentUser?.uid;
+    if (uid != null) {
+      final updatedUser = await fetchUserFromFirestore(uid);
+      if (updatedUser != null) {
+        emit(Authenticated(updatedUser));
+      }
     }
   }
 }

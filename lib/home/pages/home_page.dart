@@ -1,3 +1,7 @@
+import 'package:fitjourney/features/progress_tracking/pages/Body_Progress_page.dart';
+import 'package:fitjourney/features/progress_tracking/pages/body_metrics_form.dart';
+import 'package:fitjourney/features/social/pages/post_create_page.dart';
+import 'package:fitjourney/features/social/pages/post_feed_screen.dart';
 import 'package:flutter/material.dart';
 //import '../../training/bloc/training_bloc.dart';
 //import '../../training/bloc/training_event.dart';
@@ -18,7 +22,11 @@ class _HomeScreenState extends State<HomePage> {
 
   final List<Widget> _screens = [
     WorkoutHomeScreen(),
-    FeedScreen(),
+    //FeedScreen(),
+    //PostCreateScreen(),
+    PostFeedScreen(),
+    //BodyMetricsForm(),
+    //BodyProgressScreen(),
     ChatScreen(),
     NotebookScreen(),
     MoreScreen(),
