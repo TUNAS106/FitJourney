@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../auth/bloc/auth_event.dart';
 import '../../auth/bloc/auth_state.dart';
+import '../../auth/pages/login_page.dart';
+import '../../auth/pages/edit_profile_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -16,9 +18,36 @@ class ProfilePage extends StatelessWidget {
           IconButton(
             onPressed: () {
               context.read<AuthBloc>().add(LoggedOut());
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => LoginPage()),
+              );
             },
             icon: const Icon(Icons.logout),
-          )
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () async {
+              final state = context.read<AuthBloc>().state;
+              if (state is Authenticated) {
+                final user = state.user;
+                final updated = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => EditProfilePage(
+                      name: user.name,
+                      email: user.email,
+                      gender: user.gender,
+                      age: user.age,
+                    ),
+                  ),
+                );
+                if (updated == true) {
+                  // Reload user info after editing
+                  await context.read<AuthBloc>().reloadCurrentUser();
+                }
+              }
+            },
+          ),
         ],
       ),
       body: BlocBuilder<AuthBloc, AuthState>(
