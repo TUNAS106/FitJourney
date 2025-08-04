@@ -22,6 +22,8 @@ class _HomeScreenState extends State<HomePage> {
     ChatScreen(),
     NotebookScreen(),
     MoreScreen(),
+
+
   ];
 
   final List<String> _titles = [
