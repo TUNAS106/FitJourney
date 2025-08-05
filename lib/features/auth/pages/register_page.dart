@@ -341,4 +341,3 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
     );
   }
 }
-
