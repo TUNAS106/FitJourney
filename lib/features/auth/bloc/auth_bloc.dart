@@ -6,7 +6,6 @@ import 'auth_event.dart';
 import 'auth_state.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
-
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final firebase_auth.FirebaseAuth _firebaseAuth = firebase_auth.FirebaseAuth.instance;
 
@@ -17,14 +16,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<RegisterRequested>(_onRegisterRequested);
   }
 
-  // Hàm này sẽ được gọi khi ứng dụng bắt đầu, kiểm tra trạng thái đăng nhập
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
     final firebaseUser = _firebaseAuth.currentUser;
     if (firebaseUser != null) {
       final firestoreUser = await fetchUserFromFirestore(firebaseUser.uid);
       if (firestoreUser != null) {
         emit(Authenticated(firestoreUser));
-      } else { // Nếu không tìm thấy người dùng trong Firestore, tạo một người dùng mặc định
+      } else {
         final fallbackUser = User(
           id: firebaseUser.uid,
           name: firebaseUser.displayName ?? '',
@@ -32,6 +30,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           gender: '',
           age: 0,
           avatarUrl: firebaseUser.photoURL ?? '',
+          isVip: false,
+          vipExpiry: null,
         );
         emit(Authenticated(fallbackUser));
       }
@@ -39,7 +39,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(Unauthenticated());
     }
   }
-  // Hàm này sẽ được gọi khi người dùng đăng nhập thành công, nó sẽ lấy thông tin người dùng từ Firestore
+
   Future<void> _onLoggedIn(LoggedIn event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
@@ -58,6 +58,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           gender: '',
           age: 0,
           avatarUrl: firebaseUser.photoURL ?? '',
+          isVip: false,
+          vipExpiry: null,
         );
         emit(Authenticated(fallbackUser));
       }
@@ -67,13 +69,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-
   Future<void> _onLoggedOut(LoggedOut event, Emitter<AuthState> emit) async {
     await _firebaseAuth.signOut();
     emit(Unauthenticated());
   }
 
-  // Hàm này sẽ được gọi khi người dùng yêu cầu đăng ký, nó sẽ tạo một người dùng mới trong Firebase Auth và Firestore
   Future<void> _onRegisterRequested(
       RegisterRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
@@ -91,9 +91,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         gender: event.gender,
         age: event.age,
         avatarUrl: firebaseUser.photoURL ?? '',
+        isVip: false,
+        vipExpiry: null,
       );
 
-      // 🔹 Save user to Firestore
       await db.collection('users').doc(firebaseUser.uid).set({
         'id': user.id,
         'name': user.name,
@@ -101,6 +102,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         'gender': user.gender,
         'age': user.age,
         'avatarUrl': user.avatarUrl,
+        'isVip': user.isVip,
+        'vipExpiry': user.vipExpiry?.toIso8601String(),
       });
 
       final firestoreUser = await fetchUserFromFirestore(firebaseUser.uid);
@@ -114,7 +117,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(Unauthenticated());
     }
   }
-  // Hàm này sẽ lấy thông tin người dùng từ Firestore dựa trên uid
+
   Future<User?> fetchUserFromFirestore(String uid) async {
     try {
       final doc = await db.collection('users').doc(uid).get();
@@ -127,6 +130,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           gender: data['gender'] ?? '',
           age: data['age'] ?? 0,
           avatarUrl: data['avatarUrl'] ?? '',
+          isVip: data['isVip'] ?? false,
+          vipExpiry: data['vipExpiry'] != null ? DateTime.parse(data['vipExpiry']) : null,
         );
       } else {
         return null;
@@ -159,6 +164,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       print('No user UID found');
     }
   }
+
   Future<void> reloadCurrentUser() async {
     final uid = _firebaseAuth.currentUser?.uid;
     if (uid != null) {
@@ -166,6 +172,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (updatedUser != null) {
         emit(Authenticated(updatedUser));
       }
+    }
+  }
+  Future<void> upgradeToVip({required int days}) async {
+    final uid = _firebaseAuth.currentUser?.uid;
+    if (uid != null) {
+      final expiry = DateTime.now().add(Duration(days: days));
+      await db.collection('users').doc(uid).update({
+        'isVip': true,
+        'vipExpiry': expiry.toIso8601String(),
+      });
     }
   }
 }
