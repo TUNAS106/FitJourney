@@ -32,6 +32,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           avatarUrl: firebaseUser.photoURL ?? '',
           isVip: false,
           vipExpiry: null,
+          activePlans: [],
+
         );
         emit(Authenticated(fallbackUser));
       }
@@ -60,6 +62,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           avatarUrl: firebaseUser.photoURL ?? '',
           isVip: false,
           vipExpiry: null,
+          activePlans: [],
         );
         emit(Authenticated(fallbackUser));
       }
@@ -93,6 +96,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         avatarUrl: firebaseUser.photoURL ?? '',
         isVip: false,
         vipExpiry: null,
+        activePlans: [],
       );
 
       await db.collection('users').doc(firebaseUser.uid).set({
@@ -132,6 +136,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           avatarUrl: data['avatarUrl'] ?? '',
           isVip: data['isVip'] ?? false,
           vipExpiry: data['vipExpiry'] != null ? DateTime.parse(data['vipExpiry']) : null,
+          activePlans: [],
         );
       } else {
         return null;

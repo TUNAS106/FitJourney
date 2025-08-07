@@ -9,7 +9,7 @@ import '../../features/chat/pages/chat_page.dart';
 import '../../features/more/pages/more_page.dart';
 import '../../features/notebook/pages/notebook_page.dart';
 import '../../features/social/pages/feed_screen.dart';
-import '../../features/workout_training/presentation/pages/workout_home_page.dart';
+import '../../features/training_modes/page/home_pagetraining.dart';
 //import '../../training/pages/training_plan_screen.dart';
 
 class HomePage extends StatefulWidget {
@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomePage> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    WorkoutHomeScreen(),
+    HomePageTraining(),
     //FeedScreen(),
     //PostCreateScreen(),
     PostFeedScreen(),

@@ -1,3 +1,4 @@
+import '../../../training_modes/models/plan_models.dart';
 class User {
   final String id;
   final String name;
@@ -7,6 +8,7 @@ class User {
   final String avatarUrl;
   final bool isVip;
   final DateTime? vipExpiry; // VIP expiry date
+  List<WorkoutPlanProgress> activePlans;
 
   User({
     required this.id,
@@ -17,6 +19,7 @@ class User {
     required this.avatarUrl,
     required this.isVip,
     this.vipExpiry,
+    required this.activePlans,
   });
 
   factory User.fromMap(Map<String, dynamic> map) {
@@ -29,6 +32,7 @@ class User {
       avatarUrl: map['avatarUrl'],
       isVip: map['isVip'] ?? false,
       vipExpiry: map['vipExpiry'] != null ? DateTime.parse(map['vipExpiry']) : null,
+      activePlans: [],
     );
   }
 
