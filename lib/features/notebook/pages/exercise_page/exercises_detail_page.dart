@@ -187,14 +187,18 @@ List<String> _getMuscleGroupIcons(String muscles) {
     if (key.contains('mông')||key.contains('Mông')) return 'assets/muscle/gluteal muscles.jpg';
     if (key.contains('chân')) return 'assets/muscle/Leg Muscles.jpg';
     if (key.contains('vai')) return 'assets/muscle/Shoulder Muscles.jpg';
+    if (key.contains('hông')) return 'assets/muscle/hip muscles.webp';
     if(key.contains('trap trên')) return 'assets/muscle/trap trên.jpg';
     if(key.contains('rotator cuff')) return 'assets/muscle/rotator cuff.jpg';
-    if (key.contains('Cơ Đùi Sau')) return 'assets/muscle/Cơ Đùi Sau.jpg';
-    if (key.contains('Cơ Đùi Trước')) return 'assets/muscle/Cơ Đùi Trước.png';
+    if(key.contains('core sâu')) return 'assets/muscle/Deep Core.webp';
+    if (key.contains('transverse')) return 'assets/muscle/Transverse abdominis.webp';
+    if (key.contains('cơ đùi sau')) return 'assets/muscle/Cơ Đùi Sau.jpg';
+    if (key.contains('cơ đùi trước')) return 'assets/muscle/Cơ Đùi Trước.png';
     if (key.contains('brachialis')) return 'assets/muscle/Brachialis.jpg';
     if (key.contains('cẳng tay') || key.contains('cang tay') || key.contains('forearm')) {
       return 'assets/muscle/forearm.jpg';
     }
+    if (key.contains('đùi trong')) return 'assets/muscle/đùi trong.jpg';
     if (key.contains('xô') || key.contains('xo') || key.contains('lat') || key.contains('lats') || key.contains('latissimus')) {
       return 'assets/muscle/Latissimus Dorsi.jpg';
     }
@@ -281,6 +285,9 @@ String getEquipmentIcon(String equipment) {
       key.contains('cuộn cổ tay') || key.contains('cuon co tay')) {
     return 'assets/equipment exercise/Wrist Arm Trainer.jpg';
   }
+  if (key.contains('donkey calf')) {
+    return 'assets/equipment_exercise/Donkey Calf.jpg';
+  }
   return 'assets/default_eq.png';
 }
 
@@ -344,6 +351,9 @@ String getEquipmentDisplayName(String equipment) {
       key.contains('con lăn cổ tay') || key.contains('con lan co tay') ||
       key.contains('cuộn cổ tay') || key.contains('cuon co tay')) {
     return 'Wrist Roller';
+  }
+  if (key.contains('donkey') || key.contains('donkey calf ') || key.contains('Donkey Calf')) {
+    return 'Donkey Calf';
   }
   return 'Không xác định';
 }

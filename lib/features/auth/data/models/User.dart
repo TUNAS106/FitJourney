@@ -1,4 +1,5 @@
 import '../../../training_modes/models/plan_models.dart';
+
 class User {
   final String id;
   final String name;
@@ -8,6 +9,7 @@ class User {
   final String avatarUrl;
   final bool isVip;
   final DateTime? vipExpiry; // VIP expiry date
+  final bool isPT;
   List<WorkoutPlanProgress> activePlans;
 
   User({
@@ -19,6 +21,7 @@ class User {
     required this.avatarUrl,
     required this.isVip,
     this.vipExpiry,
+    this.isPT = false, // Default value for isPT
     required this.activePlans,
   });
 
@@ -33,6 +36,7 @@ class User {
       isVip: map['isVip'] ?? false,
       vipExpiry: map['vipExpiry'] != null ? DateTime.parse(map['vipExpiry']) : null,
       activePlans: [],
+      isPT: map['isPT'] ?? false, // Default value for isPT
     );
   }
 
@@ -46,6 +50,7 @@ class User {
       'avatarUrl': avatarUrl,
       'isVip': isVip,
       'vipExpiry': vipExpiry?.toIso8601String(),
+      'isPT': isPT, // Include isPT in the map
     };
   }
 }

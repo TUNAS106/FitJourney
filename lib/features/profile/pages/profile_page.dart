@@ -47,6 +47,8 @@ class ProfilePage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           } else if (state is Authenticated) {
             final user = state.user;
+            final isVip = user.isVip ?? false;
+            final isPT = user.isPT ?? false;
             return SingleChildScrollView(
               child: Column(
                 children: [
@@ -98,7 +100,7 @@ class ProfilePage extends StatelessWidget {
                             ],
                           ),
                         ),
-                        if (user.isVip)
+                        if (isVip)
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 4),
@@ -209,7 +211,11 @@ class ProfilePage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                user.isVip ? 'VIP Package' : 'Basic Package',
+                                isVip
+                                    ? 'VIP Package'
+                                    : isPT
+                                    ? 'PT Package'
+                                    : 'Basic Package',
                                 style: const TextStyle(
                                   fontSize: 23,
                                   fontWeight: FontWeight.bold,
@@ -218,12 +224,10 @@ class ProfilePage extends StatelessWidget {
                               ),
                               const SizedBox(height: 16),
                               Row(
-                                mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       const Text(
                                         'Current Role',
@@ -233,34 +237,43 @@ class ProfilePage extends StatelessWidget {
                                       Row(
                                         children: [
                                           Icon(
-                                            user.isVip
+                                            isVip
                                                 ? Icons.star
+                                                : isPT
+                                                ? Icons.fitness_center
                                                 : Icons.person,
                                             size: 16,
-                                            color: user.isVip
+                                            color: isVip
                                                 ? const Color(0xFF9C27B0)
+                                                : isPT
+                                                ? Colors.orange
                                                 : Colors.grey,
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            user.isVip ? 'VIP' : 'User',
+                                            isVip
+                                                ? 'VIP'
+                                                : isPT
+                                                ? 'PT'
+                                                : 'User',
                                             style: TextStyle(
                                               fontSize: 17,
-                                              color: user.isVip
+                                              color: isVip
                                                   ? Colors.purple.shade700
+                                                  : isPT
+                                                  ? Colors.orange
                                                   : Colors.grey,
                                             ),
                                           ),
                                         ],
                                       ),
                                       const SizedBox(height: 8),
-                                      if (user.isVip && user.vipExpiry != null) ...[
+                                      if (isVip && user.vipExpiry != null) ...[
                                         const SizedBox(height: 4),
                                         Row(
                                           children: [
                                             const Icon(Icons.calendar_today, size: 16, color: Colors.purple),
                                             const SizedBox(width: 4),
-                                            // --- Updated code here ---
                                             Builder(
                                               builder: (context) {
                                                 DateTime? expiryDate;
@@ -284,7 +297,6 @@ class ProfilePage extends StatelessWidget {
                                                 );
                                               },
                                             ),
-                                            // --- End updated code ---
                                           ],
                                         ),
                                       ],
@@ -292,7 +304,7 @@ class ProfilePage extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              if (!user.isVip) ...[
+                              if (!isVip && !isPT) ...[
                                 const SizedBox(height: 16),
                                 SizedBox(
                                   width: double.infinity,
@@ -311,7 +323,27 @@ class ProfilePage extends StatelessWidget {
                                         borderRadius: BorderRadius.all(Radius.circular(8)),
                                       ),
                                       elevation: 2,
-                                      padding: const EdgeInsets.symmetric(vertical: 16), // makes button taller
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    icon: const Icon(Icons.fitness_center, color: Colors.orange),
+                                    label: const Text('Upgrade to PT', style: TextStyle(fontSize: 19)),
+                                    onPressed: () async {
+                                      await context.read<AuthBloc>().upgradeToPT();
+                                      await context.read<AuthBloc>().reloadCurrentUser();
+                                  },
+                                    style: ElevatedButton.styleFrom(
+                                      foregroundColor: Colors.orange,
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                                      ),
+                                      elevation: 2,
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
                                     ),
                                   ),
                                 ),

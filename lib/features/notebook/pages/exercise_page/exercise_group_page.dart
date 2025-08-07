@@ -16,11 +16,11 @@ class ExerciseGroupPage extends StatelessWidget {
       'subgroups':[
         {
           'name': 'Cơ Đùi Sau',
-          'image': 'https://i.imgur.com/hCV3jUw.jpg',
+          'image': 'assets/muscle/Cơ Đùi Sau.jpg',
         },
         {
           'name': 'Cơ Đùi Trước',
-          'image': 'assets/muscle/Coduitruoc.jpg',
+          'image': 'assets/muscle/Cơ Đùi Trước.png',
         },
         {
           'name': 'Cơ Bắp Chân',
@@ -115,15 +115,15 @@ class ExerciseGroupPage extends StatelessWidget {
                     child: item['image'].toString().startsWith('http')
                         ? Image.network(
                       item['image'],
-                      width: 70,
-                      height: 70,
+                      width: 90,
+                      height: 90,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => const Icon(Icons.fitness_center, size: 50),
                     )
                         : Image.asset(
                       item['image'],
-                      width: 70,
-                      height: 70,
+                      width: 90,
+                      height: 90,
                       fit: BoxFit.cover,
                     ),
                   ),

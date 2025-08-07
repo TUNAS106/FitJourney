@@ -37,20 +37,30 @@ class PharmacyListPage extends StatelessWidget {
 
             leading = ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: SizedBox(width: 50, height: 50, child: imgWidget),
+              child: SizedBox(width: 100, height: 100, child: imgWidget),
             );
           } else {
-            leading = const Icon(Icons.medication_outlined, size: 40);
+            leading = const Icon(Icons.medication_outlined, size: 60);
           }
 
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             elevation: 2,
             child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               leading: leading,
-              title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('${_formatPrice(p.price)} • ${p.brand ?? "—"}'),
-              trailing: const Icon(Icons.chevron_right),
+              title: Text(
+                p.name,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(
+                '${_formatPrice(p.price)} • ${p.brand ?? "—"}',
+                style: const TextStyle(fontSize: 16),
+              ),
+              trailing: const Icon(Icons.chevron_right, size: 28),
               onTap: () {
                 Navigator.push(
                   context,

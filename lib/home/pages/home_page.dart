@@ -3,14 +3,13 @@ import 'package:fitjourney/features/progress_tracking/pages/body_metrics_form.da
 import 'package:fitjourney/features/social/pages/post_create_page.dart';
 import 'package:fitjourney/features/social/pages/post_feed_screen.dart';
 import 'package:flutter/material.dart';
-//import '../../training/bloc/training_bloc.dart';
-//import '../../training/bloc/training_event.dart';
-import '../../features/chat/pages/chat_page.dart';
+import '../../features/chat/widget/chat_tab_widget.dart';
 import '../../features/more/pages/more_page.dart';
 import '../../features/notebook/pages/notebook_page.dart';
 import '../../features/social/pages/feed_screen.dart';
 import '../../features/training_modes/page/home_pagetraining.dart';
 //import '../../training/pages/training_plan_screen.dart';
+
 
 class HomePage extends StatefulWidget {
   @override
@@ -27,7 +26,7 @@ class _HomeScreenState extends State<HomePage> {
     PostFeedScreen(),
     //BodyMetricsForm(),
     //BodyProgressScreen(),
-    ChatScreen(),
+    ChatTabWidget(),
     NotebookScreen(),
     MoreScreen(),
 
