@@ -507,11 +507,14 @@ List<String> _muscleIcons(String muscles) {
     if (k.contains('lưng')) return 'assets/muscle/Back Muscles.jpg';
     if (k.contains('mông')||k.contains('Mông')) return 'assets/muscle/gluteal muscles.jpg';
     if (k.contains('chân')) return 'assets/muscle/Leg Muscles.jpg';
+    if (k.contains('hông')) return 'assets/muscle/hip muscles.webp';
+    if (k.contains('core sâu')) return 'assets/muscle/Deep Core.webp';
+    if (k.contains('transverse')) return 'assets/muscle/Transverse abdominis.webp';
     if (k.contains('vai')) return 'assets/muscle/Shoulder Muscles.jpg';
     if (k.contains('trap trên') || k.contains('trap tren')) return 'assets/muscle/trap trên.jpg';
     if (k.contains('rotator cuff')) return 'assets/muscle/rotator cuff.jpg';
-    if (k.contains('Cơ Đùi Sau')) return 'assets/muscle/Cơ Đùi Sau.jpg';
-    if (k.contains('Cơ Đùi Trước')) return 'assets/muscle/Cơ Đùi Trước.png';
+    if (k.contains('cơ đùi sau')) return 'assets/muscle/Cơ Đùi Sau.jpg';
+    if (k.contains('cơ đùi trước')) return 'assets/muscle/Cơ Đùi Trước.png';
     if (k.contains('brachialis')) return 'assets/muscle/Brachialis.jpg';
     if (k.contains('cẳng tay') || k.contains('cang tay') || k.contains('forearm')) {
       return 'assets/muscle/forearm.jpg';
@@ -526,6 +529,7 @@ List<String> _muscleIcons(String muscles) {
     if (k.contains('brachioradialis')) {return 'assets/muscle/Brachioradialis.jpg'; }
     if (k.contains('pronator')) {return 'assets/muscle/pronator.png'; }
     if (k.contains('supinator')) {return 'assets/muscle/supinator.webp'; }
+    if (k.contains('đùi trong')) return 'assets/muscle/đùi trong.jpg';
     return 'assets/default_body.png';
   }).toList();
 }

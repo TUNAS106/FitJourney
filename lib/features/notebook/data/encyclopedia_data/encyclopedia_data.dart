@@ -160,7 +160,7 @@ List<Encyclopedia> encyclopediaSamples = [
   – Gối không sụp vào trong, lưng không gù; tăng tạ dần (progressive overload).
 ''',
     tags: "squat, form, kỹ thuật, lower body",
-    imageUrl: "assets/encyclopedia/squat.webp",
+    imageUrl: "assets/encyclopedia/squat.jpg",
   ),
   Encyclopedia(
     title: "Form deadlift an toàn",
@@ -175,7 +175,7 @@ List<Encyclopedia> encyclopediaSamples = [
 • Lưu ý: không giật tạ khỏi sàn; reset từng rep khi cần.
 ''',
     tags: "deadlift, form, kỹ thuật, posterior chain",
-    imageUrl: "assets/encyclopedia/deadlift.webp",
+    imageUrl: "assets/encyclopedia/deadlift.jpg",
   ),
   Encyclopedia(
     title: "Form bench press hiệu quả",
@@ -215,7 +215,7 @@ List<Encyclopedia> encyclopediaSamples = [
 • Theo dõi: ghi chép tạ/reps/set; giữ form trước, tăng sau.
 ''',
     tags: "progressive overload, tăng tạ, tiến bộ",
-    imageUrl: "assets/encyclopedia/progressive.webp",
+    imageUrl: "assets/encyclopedia/progressive.jpg",
   ),
   Encyclopedia(
     title: "Tính calo & macro nhanh",
@@ -271,7 +271,7 @@ List<Encyclopedia> encyclopediaSamples = [
   – Đi bộ nhẹ, bơi, xoa bóp, tắm ấm có thể giảm khó chịu.
 ''',
     tags: "DOMS, phục hồi, đau cơ",
-    imageUrl: "assets/encyclopedia/doms.webp",
+    imageUrl: "assets/encyclopedia/doms.jpg",
   ),
   Encyclopedia(
     title: "Vai đau khi tập đẩy: cách phòng & xử lý",
@@ -284,7 +284,7 @@ List<Encyclopedia> encyclopediaSamples = [
 • Xử lý: giảm khối lượng/biên độ, đá lạnh 10–15’, tham khảo chuyên gia nếu đau kéo dài.
 ''',
     tags: "vai, chấn thương, bench, phục hồi",
-    imageUrl: "assets/encyclopedia/shoulder.webp",
+    imageUrl: "assets/encyclopedia/shoulder.jpg",
   ),
   Encyclopedia(
     title: "Mobility vs Stretching: nên làm gì?",
@@ -309,6 +309,70 @@ List<Encyclopedia> encyclopediaSamples = [
 • Kỳ vọng: tiến bộ chậm nhưng bền; điều chỉnh theo dữ liệu 4–6 tuần.
 ''',
     tags: "recomp, tăng cơ giảm mỡ, tiến trình",
-    imageUrl: "assets/encyclopedia/recomp.webp",
+    imageUrl: "assets/encyclopedia/recomp.jpg",
+  ),
+  Encyclopedia(
+    title: "HIIT vs LISS: nên chọn phương pháp nào?",
+    category: "Tập luyện",
+    content: '''
+• HIIT (High-Intensity Interval Training)
+  – Thời gian ngắn (15–20 phút), xen kẽ rất nhanh và chậm.
+  – Ưu điểm: đốt mỡ mạnh, tăng VO2max, tiết kiệm thời gian.
+  – Nhược điểm: áp lực lên tim mạch & khớp; không phù hợp người mới.
+• LISS (Low-Intensity Steady State)
+  – Cardio ổn định (Zone 2), 30–60 phút.
+  – Ưu điểm: dễ thực hiện, ít chấn thương, tốt cho phục hồi.
+  – Nhược điểm: tốn thời gian, hiệu quả đốt mỡ chậm hơn.
+• Gợi ý: xen kẽ HIIT 1–2 buổi/tuần với LISS 2–3 buổi/tuần tùy mục tiêu.
+''',
+    tags: "HIIT, LISS, cardio, tập luyện",
+    imageUrl: "assets/encyclopedia/hiit_liss.webp",
+  ),
+  Encyclopedia(
+    title: "Meal Prep hiệu quả cho tuần tập",
+    category: "Dinh dưỡng",
+    content: '''
+• Lên kế hoạch: chọn 2–3 loại protein, 2–3 loại carb, rau củ khô nước.
+• Chuẩn bị:
+  – Nấu sẵn thịt cá/trứng; hấp/chà rau; nấu cơm/gạo lứt/khoai.
+  – Chia vào hộp 5–7 phần ăn theo khẩu phần calo/macro.
+• Mẹo:
+  – Gia vị sẵn: ướp thịt bằng gia vị khô, dầu oliu, chanh.
+  – Trộn salad khô, giữ dressing riêng để tránh nhũn.
+  – Bảo quản: tủ lạnh 3–4 ngày, ngăn đá đến 1 tuần.
+''',
+    tags: "meal prep, dinh dưỡng, tuần tập",
+    imageUrl: "assets/encyclopedia/meal_prep.jpg",
+  ),
+  Encyclopedia(
+    title: "Overtraining: dấu hiệu & cách phòng ngừa",
+    category: "Phục hồi",
+    content: '''
+• Dấu hiệu:
+  – Mệt mỏi kéo dài, mất ngủ, giảm hiệu suất, đau cơ dai dẳng.
+  – Nhịp tim nghỉ tăng, thay đổi tâm trạng (căng thẳng, cáu gắt).
+• Phòng ngừa:
+  – Lập lịch tập/nghỉ hợp lý: 1–2 ngày nghỉ/tuần + deload mỗi 6–8 tuần.
+  – Ngủ đủ 7–9 giờ, dinh dưỡng đầy đủ protein, carb & chất béo.
+  – Thêm session nhẹ (yoga, bơi, đi bộ) để phục hồi chủ động.
+''',
+    tags: "overtraining, phục hồi, nghỉ ngơi",
+    imageUrl: "assets/encyclopedia/overtraining.webp",
+  ),
+  Encyclopedia(
+    title: "Macro Cycling là gì?",
+    category: "Dinh dưỡng",
+    content: '''
+• Khái niệm: thay đổi tỷ lệ carb/protein/fat theo ngày hoặc tuần để tối ưu mục tiêu.
+• Ví dụ:
+  – Ngày tập nặng (leg day): carb cao, protein cao, fat thấp.
+  – Ngày nghỉ hoặc tập nhẹ: carb thấp, protein vừa đủ, fat cao hơn.
+• Lợi ích:
+  – Hỗ trợ phục hồi & hiệu suất; điều chỉnh năng lượng theo nhu cầu.
+  – Giúp tránh nhàm chán khẩu phần.
+• Thực hành: lên kế hoạch macro tuần, theo dõi bằng app dinh dưỡng.
+''',
+    tags: "macro cycling, dinh dưỡng, carb cycling",
+    imageUrl: "assets/encyclopedia/macro_cycling.webp",
   ),
 ];

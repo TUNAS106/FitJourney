@@ -74,4 +74,3 @@ class PostRepository {
         .map((snapshot) => snapshot.docs.map((doc) => Post.fromMap(doc.id, doc.data())).toList());
   }
 }
-
