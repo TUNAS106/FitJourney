@@ -32,6 +32,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           avatarUrl: firebaseUser.photoURL ?? '',
           isVip: false,
           vipExpiry: null,
+          isPT: false, // Default value for isPT
         );
         emit(Authenticated(fallbackUser));
       }
@@ -60,6 +61,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           avatarUrl: firebaseUser.photoURL ?? '',
           isVip: false,
           vipExpiry: null,
+          isPT: false, // Default value for isPT
         );
         emit(Authenticated(fallbackUser));
       }
@@ -93,6 +95,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         avatarUrl: firebaseUser.photoURL ?? '',
         isVip: false,
         vipExpiry: null,
+        isPT: false, // Default value for isPT
       );
 
       await db.collection('users').doc(firebaseUser.uid).set({
@@ -104,6 +107,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         'avatarUrl': user.avatarUrl,
         'isVip': user.isVip,
         'vipExpiry': user.vipExpiry?.toIso8601String(),
+        'isPT': user.isPT, // Include isPT in the user data
       });
 
       final firestoreUser = await fetchUserFromFirestore(firebaseUser.uid);
@@ -132,6 +136,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           avatarUrl: data['avatarUrl'] ?? '',
           isVip: data['isVip'] ?? false,
           vipExpiry: data['vipExpiry'] != null ? DateTime.parse(data['vipExpiry']) : null,
+          isPT: data['isPT'] ?? false, // Default value for isPT
         );
       } else {
         return null;
@@ -181,6 +186,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await db.collection('users').doc(uid).update({
         'isVip': true,
         'vipExpiry': expiry.toIso8601String(),
+      });
+    }
+  }
+  Future<void> upgradeToPT() async {
+    final uid = _firebaseAuth.currentUser?.uid;
+    if (uid != null) {
+      await db.collection('users').doc(uid).update({
+        'isPT': true,
       });
     }
   }

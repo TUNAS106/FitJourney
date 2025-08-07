@@ -7,6 +7,7 @@ class User {
   final String avatarUrl;
   final bool isVip;
   final DateTime? vipExpiry; // VIP expiry date
+  final bool isPT;
 
   User({
     required this.id,
@@ -17,6 +18,7 @@ class User {
     required this.avatarUrl,
     required this.isVip,
     this.vipExpiry,
+    this.isPT = false, // Default value for isPT
   });
 
   factory User.fromMap(Map<String, dynamic> map) {
@@ -29,6 +31,7 @@ class User {
       avatarUrl: map['avatarUrl'],
       isVip: map['isVip'] ?? false,
       vipExpiry: map['vipExpiry'] != null ? DateTime.parse(map['vipExpiry']) : null,
+      isPT: map['isPT'] ?? false, // Default value for isPT
     );
   }
 
@@ -42,6 +45,7 @@ class User {
       'avatarUrl': avatarUrl,
       'isVip': isVip,
       'vipExpiry': vipExpiry?.toIso8601String(),
+      'isPT': isPT, // Include isPT in the map
     };
   }
 }
