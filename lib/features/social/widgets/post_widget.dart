@@ -1,21 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../data/models/post.dart';
 import '../data/repositories/post_repository.dart';
 import '../widgets/comment_section.dart';
-
-String _formatTimestamp(DateTime time) {
-  final now = DateTime.now();
-  final difference = now.difference(time);
-
-  if (difference.inMinutes < 1) return 'Vừa xong';
-  if (difference.inMinutes < 60) return '${difference.inMinutes} phút trước';
-  if (difference.inHours < 24) return '${difference.inHours} giờ trước';
-  return DateFormat('dd/MM/yyyy').format(time);
-}
 
 class PostWidget extends StatefulWidget {
   final Post post;
@@ -69,10 +59,20 @@ class _PostWidgetState extends State<PostWidget> {
     });
   }
 
+  String _formatTimestamp(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+    if (difference.inDays > 3) {
+      // Quá 3 ngày, hiển thị định dạng ngày chuẩn
+      return DateFormat('dd/MM/yyyy').format(timestamp);
+    } else {
+      // Dưới 3 ngày thì dùng timeago
+      return timeago.format(timestamp);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Gradient vàng đậm cho VIP
-    // Gradient vàng đậm cho VIP badge
     final vipBadgeGradient = const LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
@@ -86,9 +86,9 @@ class _PostWidgetState extends State<PostWidget> {
 
     final vipPostGradient = const LinearGradient(
       colors: [
-        Color(0xFFFFEB80), // vàng đậm đã nhạt 50%
-        Color(0xFFFFF2B3), // vàng chính nhạt hơn
-        Color(0xFFFFF9E6), // vàng cực nhạt gần trắng
+        Color(0xFFFFF8E1), // vàng rất nhạt
+        Color(0xFFFFFDE7),
+        Color(0xFFFFFBF2),
       ],
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
@@ -103,7 +103,6 @@ class _PostWidgetState extends State<PostWidget> {
       end: Alignment.bottomCenter,
     );
 
-
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('posts')
@@ -117,55 +116,59 @@ class _PostWidgetState extends State<PostWidget> {
           likeCount = likesList.length;
         }
 
-        return Container(
-          decoration: BoxDecoration(
-            gradient: isVip ? vipPostGradient : normalPostGradient,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+        return Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                gradient: isVip ? vipPostGradient : normalPostGradient,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isVip ? Colors.amber.shade700 : Colors.black54,
+                  width: 2.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
-            ],
-          ),
-          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-
-                /// --- USER INFO ---
-                Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundImage: widget.post.userAvatarUrl != null
-                          ? NetworkImage(widget.post.userAvatarUrl!)
-                          : const AssetImage(
-                          'assets/images/default_avatar.png') as ImageProvider,
-                      radius: 22,
-                    ),
-                    const SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              widget.post.username,
-                              style: const TextStyle(
-                                color: Colors.black87,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
+              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// --- USER INFO ---
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundImage: widget.post.userAvatarUrl != null
+                            ? NetworkImage(widget.post.userAvatarUrl!)
+                            : const AssetImage('assets/images/default_avatar.png')
+                        as ImageProvider,
+                        radius: 22,
+                      ),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                widget.post.username,
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
                               ),
-                            ),
-                            if (isVip) ...[
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
+                              if (isVip) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
                                     gradient: vipBadgeGradient,
                                     borderRadius: BorderRadius.circular(8),
                                     boxShadow: [
@@ -175,136 +178,164 @@ class _PostWidgetState extends State<PostWidget> {
                                         offset: const Offset(0, 1),
                                       ),
                                     ],
-                                ),
-                                child: const Text(
-                                  'VIP',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    letterSpacing: 1,
+                                  ),
+                                  child: const Text(
+                                    'VIP',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      letterSpacing: 1,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ]
-                          ],
-                        ),
-                        Text(
-                          timeago.format(widget.post.timestamp),
-                          style: const TextStyle(
-                            color: Colors.black54,
-                            fontSize: 12,
+                              ]
+                            ],
                           ),
+                          Text(
+                            _formatTimestamp(widget.post.timestamp),
+                            style: const TextStyle(
+                              color: Colors.black54,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  /// --- POST CONTENT ---
+                  if (widget.post.content != null &&
+                      widget.post.content!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Text(
+                        widget.post.content!,
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 15.5,
+                          height: 1.4,
                         ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                /// --- POST CONTENT ---
-                if (widget.post.content != null &&
-                    widget.post.content!.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Text(
-                      widget.post.content!,
-                      style: const TextStyle(
-                        color: Colors.black87,
-                        fontSize: 15.5,
-                        height: 1.4,
                       ),
                     ),
-                  ),
 
-                /// --- POST IMAGE ---
-                if (widget.post.imageUrl != null &&
-                    widget.post.imageUrl!.isNotEmpty)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      widget.post.imageUrl!,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: 260,
-                      loadingBuilder: (context, child, progress) {
-                        if (progress == null) return child;
-                        return const SizedBox(
-                          height: 260,
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      },
-                    ),
-                  ),
-
-                const SizedBox(height: 10),
-
-                /// --- LIKE + COMMENT BUTTONS ---
-                Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        isLiked ? Icons.favorite : Icons.favorite_border,
-                        color: isLiked ? Colors.red : Colors.grey,
-                        size: 26,
-                      ),
-                      onPressed: _onLikePressed,
-                    ),
-                    Text(
-                      '$likeCount',
-                      style: const TextStyle(
-                        color: Colors.black87,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                  /// --- POST IMAGE ---
+                  if (widget.post.imageUrl != null &&
+                      widget.post.imageUrl!.isNotEmpty)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        widget.post.imageUrl!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 260,
+                        loadingBuilder: (context, child, progress) {
+                          if (progress == null) return child;
+                          return const SizedBox(
+                            height: 260,
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        },
                       ),
                     ),
-                    const SizedBox(width: 14),
 
-                    /// --- COMMENT ICON + COUNT ---
-                    StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('posts')
-                          .doc(widget.post.id)
-                          .collection('comments')
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        int commentCount = 0;
-                        if (snapshot.hasData) {
-                          commentCount = snapshot.data!.docs.length;
-                        }
-                        return Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icons.comment_outlined,
-                                size: 24,
-                                color: Colors.grey,
+                  const SizedBox(height: 10),
+
+                  /// --- LIKE + COMMENT BUTTONS ---
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          isLiked ? Icons.favorite : Icons.favorite_border,
+                          color: isLiked ? Colors.red : Colors.grey,
+                          size: 26,
+                        ),
+                        onPressed: _onLikePressed,
+                      ),
+                      Text(
+                        '$likeCount',
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+
+                      /// --- COMMENT ICON + COUNT ---
+                      StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('posts')
+                            .doc(widget.post.id)
+                            .collection('comments')
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          int commentCount = 0;
+                          if (snapshot.hasData) {
+                            commentCount = snapshot.data!.docs.length;
+                          }
+                          return Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.comment_outlined,
+                                  size: 24,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: _onCommentPressed,
                               ),
-                              onPressed: _onCommentPressed,
-                            ),
-                            Text(
-                              '$commentCount',
-                              style: const TextStyle(
-                                color: Colors.black87,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
+                              Text(
+                                '$commentCount',
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
                               ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                /// --- COMMENT SECTION ---
-                if (showComments)
-                  CommentSection(
-                    postId: widget.post.id,
-                    currentUserId: widget.currentUserId,
+                            ],
+                          );
+                        },
+                      ),
+                    ],
                   ),
-              ],
+
+                  /// --- COMMENT SECTION ---
+                  if (showComments)
+                    CommentSection(
+                      postId: widget.post.id,
+                      currentUserId: widget.currentUserId,
+                    ),
+                ],
+              ),
             ),
-          ),
+
+            // Crown icon ở góc trên phải nếu VIP
+            if (isVip)
+              Positioned(
+                top: 6,
+                right: 12,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade600.withOpacity(0.9),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.amber.shade700.withOpacity(0.7),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.emoji_events, // vương miện
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                ),
+              ),
+          ],
         );
       },
     );
