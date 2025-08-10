@@ -79,6 +79,7 @@ class Exercise {
   int reps;                        // Số lần mỗi hiệp
   int duration;                    // Thời lượng bài tập (nếu là bài tập theo thời gian), đơn vị: giây
   String videoUrl;                 // Đường dẫn video minh họa
+  String videoVip;
   String description;              // Mô tả chi tiết bài tập
   String note;                     // Cảnh báo hoặc lời khuyên
   List<String> step;              // Các bước thực hiện bài tập
@@ -92,6 +93,7 @@ class Exercise {
     required this.reps,
     required this.duration,
     required this.videoUrl,
+    required this.videoVip,
     required this.description,
     required this.note,
     required this.step,
@@ -107,6 +109,7 @@ class Exercise {
       reps: map['reps'],
       duration: map['duration'],
       videoUrl: map['videoUrl'],
+      videoVip: map['videoVip'],
       description: map['description'],
       note: map['note'],
       step: List<String>.from((map['step'] as String).split('|')), // dùng '|' để lưu danh sách step trong SQLite
@@ -125,6 +128,7 @@ class Exercise {
       'reps': reps,
       'duration': duration,
       'videoUrl': videoUrl,
+      'videoVip': videoVip,
       'description': description,
       'note': note,
       'step': step.join('|'), // nối các bước lại thành chuỗi để lưu SQLite

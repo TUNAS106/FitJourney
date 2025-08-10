@@ -11,6 +11,7 @@ class User {
   final DateTime? vipExpiry; // VIP expiry date
   final bool isPT;
   List<WorkoutPlanProgress> activePlans;
+  final int challenge;
 
   User({
     required this.id,
@@ -23,6 +24,7 @@ class User {
     this.vipExpiry,
     this.isPT = false, // Default value for isPT
     required this.activePlans,
+    required this.challenge,
   });
 
   factory User.fromMap(Map<String, dynamic> map) {
@@ -36,7 +38,8 @@ class User {
       isVip: map['isVip'] ?? false,
       vipExpiry: map['vipExpiry'] != null ? DateTime.parse(map['vipExpiry']) : null,
       activePlans: [],
-      isPT: map['isPT'] ?? false, // Default value for isPT
+      isPT: map['isPT'] ?? false,
+      challenge: map['challenge'] ?? 0,
     );
   }
 
@@ -51,6 +54,7 @@ class User {
       'isVip': isVip,
       'vipExpiry': vipExpiry?.toIso8601String(),
       'isPT': isPT, // Include isPT in the map
+      'challenge': challenge,
     };
   }
 }

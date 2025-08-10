@@ -17,7 +17,7 @@ class _MoreScreenState extends State<MoreScreen> {
       MaterialPageRoute(
         builder: (_) => BodyMetricsFormPage(
           onSubmitted: () {
-            Navigator.pop(context);
+            //Navigator.pop(context);
             _chartKey.currentState?.refresh();
           },
         ),

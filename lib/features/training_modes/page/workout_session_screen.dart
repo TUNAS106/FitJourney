@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:confetti/confetti.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../models/Load_workout_plans.dart';
@@ -8,21 +9,17 @@ import 'exercise_screen.dart';
 
 class WorkoutSessionScreen extends StatefulWidget {
   final WorkoutDay day;
-  final WorkoutPlanProgress progress; // thêm progress để biết currentExercise
+  final WorkoutPlanProgress progress;
   final VoidCallback? onDaySkipped;
   final VoidCallback onProgressUpdated;
-
-
 
   const WorkoutSessionScreen({
     Key? key,
     required this.day,
     required this.progress,
-    this.onDaySkipped, required this.onProgressUpdated,
+    this.onDaySkipped,
+    required this.onProgressUpdated,
   }) : super(key: key);
-
-
-
 
   @override
   State<WorkoutSessionScreen> createState() => _WorkoutSessionScreenState();
@@ -34,11 +31,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   DateTime? _startTime;
   Duration _elapsedTime = Duration.zero;
   Timer? _timer;
-
+  late ConfettiController _confettiController;
 
   void _startTimer() {
     _startTime = DateTime.now();
-    _timer = Timer.periodic(Duration(seconds: 1), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() {
         _elapsedTime = DateTime.now().difference(_startTime!);
       });
@@ -52,37 +49,39 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   @override
   void initState() {
     super.initState();
-    _exercisesFuture =
-        WorkoutPlanRepository().getExercisesForDay(widget.day.id!);
+    _exercisesFuture = WorkoutPlanRepository().getExercisesForDay(widget.day.id!);
+    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
   }
 
   void _confirmSkipDay(BuildContext context) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Xác nhận'),
-        content: Text('Bạn có chắc chắn muốn kết thúc ngày hiện tại không?'),
+        title: const Text('Xác nhận'),
+        content: const Text('Bạn có chắc chắn muốn kết thúc ngày hiện tại không?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Hủy'),
+            child: const Text('Hủy'),
           ),
           TextButton(
             onPressed: () async {
               if (widget.day.day == widget.progress.currentDay) {
                 widget.progress.currentExercise = 0;
                 widget.progress.currentDay += 1;
-                // Cập nhật progress trong Firestore
-                await FirebaseUserService().updateUserProgress(FirebaseAuth.instance.currentUser!.uid, widget.progress);
+                await FirebaseUserService().updateUserProgress(
+                  FirebaseAuth.instance.currentUser!.uid,
+                  widget.progress,
+                );
               }
               widget.onProgressUpdated();
-              Navigator.pop(ctx); // đóng dialog
-              Navigator.pop(context); // thoát về màn hình kế hoạch
+              Navigator.pop(ctx);
+              Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Đã kết thúc ngày hiện tại')),
+                const SnackBar(content: Text('Đã kết thúc ngày hiện tại')),
               );
             },
-            child: Text('Xác nhận', style: TextStyle(color: Colors.red)),
+            child: const Text('Xác nhận', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -90,78 +89,68 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   void _checkIfDayCompleted(List<Exercise> exercises) {
-    if (widget.progress.currentExercise >= exercises.length &&  widget.progress.currentDay == widget.day.day) {
-      // Đã hoàn thành tất cả bài tập của ngày
+    if (widget.progress.currentExercise >= exercises.length &&
+        widget.progress.currentDay == widget.day.day) {
       widget.progress.currentDay++;
       widget.progress.currentExercise = 0;
 
-      // Cập nhật lên Firestore
       FirebaseUserService().updateUserProgress(
-          FirebaseAuth.instance.currentUser!.uid,
-          widget.progress
+        FirebaseAuth.instance.currentUser!.uid,
+        widget.progress,
       );
       widget.onProgressUpdated();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Chúc mừng! Bạn đã hoàn thành ngày ${widget.day.day}')),
+        SnackBar(content: Text('🎉 Chúc mừng! Bạn đã hoàn thành ngày ${widget.day.day}')),
       );
-
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
         final exercises = await _exercisesFuture;
-        widget.onProgressUpdated(); // Gọi callback để cập nhật màn hình trước
+        widget.onProgressUpdated();
         _checkIfDayCompleted(exercises);
-        if (_isStarted == true) {
+
+        if (_isStarted) {
           _stopTimer();
-          setState(() {
-            _isStarted = false;
-          });
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Hoàn thành buổi tập'),
-                content: Text(
-                  'Hôm nay bạn đã tập được kha khá đấy .\n'
-                      'Thời gian: ${_elapsedTime.inMinutes} phút ${_elapsedTime.inSeconds % 60} giây\n'
-                      'Hãy cố gắng hơn vào hôm sau nhé!',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Đóng dialog
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('OK'),
-                  ),
-                ],
-              );
-            },
-          );
+          setState(() => _isStarted = false);
+          _showFinishDialog();
         }
-        return true; // Cho phép thoát khỏi màn hình
+        return true;
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Ngày ${widget.day.day}'),
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.orange, Colors.redAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
+          title: Text(
+            'Ngày ${widget.day.day}',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           actions: _isStarted
               ? [
             Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   '${_elapsedTime.inMinutes.toString().padLeft(2, '0')}:${(_elapsedTime.inSeconds % 60).toString().padLeft(2, '0')}',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
             )
           ]
               : [
             IconButton(
-              icon: Icon(Icons.skip_next),
+              icon: const Icon(Icons.skip_next),
               onPressed: () => _confirmSkipDay(context),
               tooltip: 'Bỏ qua ngày',
             ),
@@ -170,150 +159,172 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         body: FutureBuilder<List<Exercise>>(
           future: _exercisesFuture,
           builder: (context, snapshot) {
-            if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
             final exercises = snapshot.data!;
             return ListView.builder(
+              padding: const EdgeInsets.all(12),
               itemCount: exercises.length,
               itemBuilder: (context, index) {
                 final ex = exercises[index];
                 final currentExercise = widget.progress.currentExercise;
 
-                return Opacity(
-                  opacity: index > currentExercise ? 0.4 : 1.0, // Làm mờ nếu chưa tới lượt tập
-                  child: ListTile(
-                    leading: ex.imageUrl != null
-                        ? Image.asset(ex.imageUrl!, width: 60, height: 60, fit: BoxFit.cover)
-                        : Icon(Icons.fitness_center, size: 40),
-                    title: Text(ex.name),
-                    subtitle: Text(
-                      '${ex.sets} sets x ${ex.reps} reps | ${ex.duration}s',
+                return AnimatedOpacity(
+                  duration: const Duration(milliseconds: 400),
+                  opacity: index > currentExercise ? 0.4 : 1.0,
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    trailing: index < currentExercise
-                        ? Icon(Icons.check_circle, color: Colors.green) // Đã hoàn thành
-                        : (index == currentExercise
-                        ? Icon(Icons.fiber_manual_record, color: Colors.blue) // Đang tập
-                        : null), // Chưa đến lượt
-                    onTap: () {
-                      if (index == currentExercise) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ExerciseScreen(
-                              exercise: ex,
-                              progress: widget.progress,
-                              onProgressUpdated: () {
-                                setState(() {}); // cập nhật lại UI
-                              },
-                              exerciseIndexInDay: index,
+                    elevation: 4,
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(12),
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: ex.imageUrl != null
+                            ? Image.asset(
+                          ex.imageUrl!,
+                          width: 70,
+                          height: 70,
+                          fit: BoxFit.cover,
+                        )
+                            : const Icon(Icons.fitness_center, size: 50),
+                      ),
+                      title: Text(
+                        ex.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      subtitle: Text(
+                        '${ex.sets} sets x ${ex.reps} reps | ${ex.duration} phút',
+                      ),
+                      trailing: index < currentExercise
+                          ? const Icon(Icons.check_circle, color: Colors.green)
+                          : (index == currentExercise
+                          ? const Icon(Icons.play_circle_fill,
+                          color: Colors.blue, size: 30)
+                          : null),
+                      onTap: () {
+                        if (index <= currentExercise) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ExerciseScreen(
+                                exercise: ex,
+                                progress: widget.progress,
+                                onProgressUpdated: () {
+                                  setState(() {});
+                                },
+                                exerciseIndexInDay: index,
+                              ),
                             ),
-                          ),
-                        );
-                      }
-                      if (index < currentExercise) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ExerciseScreen(
-                              exercise: ex,
-                              progress: widget.progress,
-                              onProgressUpdated: () {
-                                setState(() {}); // cập nhật lại UI
-                              },
-                              exerciseIndexInDay: index,
-                            ),
-                          ),
-                        );
-                      }
-                    },
+                          );
+                        }
+                      },
+                    ),
                   ),
                 );
               },
             );
           },
         ),
-          bottomNavigationBar: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: _isStarted
-                ? ElevatedButton.icon(
-              icon: Icon(Icons.stop),
-              label: Text('Kết thúc tập'),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: Colors.red,
+        bottomNavigationBar: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ElevatedButton.icon(
+            icon: Icon(_isStarted ? Icons.stop : Icons.play_arrow, size: 28),
+            label: Text(
+              _isStarted ? 'Kết thúc tập' : 'Bắt đầu',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
               ),
-              onPressed: () {
+              backgroundColor: _isStarted ? Colors.red :  Colors.orangeAccent[700],
+            ),
+            onPressed: () async {
+              if (_isStarted) {
                 _stopTimer();
-                setState(() {
-                  _isStarted = false;
-                });
-
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Hoàn thành buổi tập'),
-                      content: Text(
-                        'Hôm nay bạn đã tập được kha khá đấy .\n'
-                            'Thời gian: ${_elapsedTime.inMinutes} phút ${_elapsedTime.inSeconds % 60} giây\n'
-                            'Hãy cố gắng hơn vào hôm sau nhé!',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(); // Đóng dialog
-                          },
-                          child: Text('OK'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-
-              },
-            )
-                : ElevatedButton.icon(
-              icon: Icon(Icons.play_arrow),
-              label: Text('Bắt đầu'),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 16),
-              ),
-              onPressed: () async {
+                setState(() => _isStarted = false);
+                _showFinishDialog();
+              } else {
                 final exercises = await _exercisesFuture;
                 final currentIndex = widget.progress.currentExercise;
                 if (currentIndex < exercises.length) {
-                  final currentExercise = exercises[currentIndex];
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => ExerciseScreen(
-                        exercise: currentExercise,
+                        exercise: exercises[currentIndex],
                         progress: widget.progress,
                         onProgressUpdated: () {
-                          setState(() {}); // cập nhật lại UI
+                          setState(() {});
                         },
-                        exerciseIndexInDay: currentIndex,//index,
-                    ),
-
+                        exerciseIndexInDay: currentIndex,
+                      ),
                     ),
                   );
-                  setState(() {
-                    _isStarted = true;
-                  });
+                  setState(() => _isStarted = true);
                   _startTimer();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Bạn đã hoàn thành tất cả bài tập trong ngày!')),
+                    const SnackBar(
+                        content: Text('Bạn đã hoàn thành tất cả bài tập hôm nay!')),
                   );
                 }
-              },
-            ),
+              }
+            },
           ),
+        ),
       ),
     );
   }
+
+  void _showFinishDialog() {
+    _confettiController.play(); // Bắt đầu pháo hoa
+
+    showDialog(
+      context: context,
+      builder: (_) => Stack(
+        alignment: Alignment.topCenter,
+        children: [
+          AlertDialog(
+            title: const Text('Hoàn thành buổi tập'),
+            content: Text(
+              '💪 Hôm nay bạn đã tập rất tốt!\n'
+                  '⏱ Thời gian: ${_elapsedTime.inMinutes} phút ${_elapsedTime.inSeconds % 60} giây\n'
+                  '🔥 Hãy duy trì tinh thần này nhé!',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+          ConfettiWidget(
+            confettiController: _confettiController,
+            blastDirectionality: BlastDirectionality.explosive,
+            shouldLoop: false,
+            colors: const [Colors.red, Colors.orange, Colors.blue, Colors.purple],
+          ),
+        ],
+      ),
+    );
+  }
+
+
   @override
   void dispose() {
     _stopTimer();
+    _confettiController.dispose();
     super.dispose();
   }
 }

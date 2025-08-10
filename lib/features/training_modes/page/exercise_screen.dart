@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 import '../../auth/pages/upgrade_vip_page.dart';
 import '../models/Load_workout_plans.dart';
 import '../models/plan_models.dart';
@@ -11,7 +12,15 @@ class ExerciseScreen extends StatefulWidget {
   final WorkoutPlanProgress progress;
   final VoidCallback onProgressUpdated;
   final int exerciseIndexInDay;
-  const ExerciseScreen({Key? key, required this.exercise, required this.progress, required this.onProgressUpdated, required this.exerciseIndexInDay}) : super(key: key);
+
+
+  const ExerciseScreen({
+    Key? key,
+    required this.exercise,
+    required this.progress,
+    required this.onProgressUpdated,
+    required this.exerciseIndexInDay,
+  }) : super(key: key);
 
   @override
   State<ExerciseScreen> createState() => _ExerciseScreenState();
@@ -24,14 +33,36 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
   bool isResting = false;
   Timer? _restTimer;
   int restSecondsLeft = 0;
+  late VideoPlayerController _videoController;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeVideoPlayer();
+  }
+
+  void _initializeVideoPlayer() {
+    if (widget.exercise.videoUrl.isNotEmpty) {
+      _videoController = widget.exercise.videoUrl.startsWith('assets/')
+          ? VideoPlayerController.asset(widget.exercise.videoUrl)
+          : VideoPlayerController.network(widget.exercise.videoUrl);
+
+      _videoController.initialize().then((_) {
+        _videoController.play();
+        setState(() {});
+      });
+    }
+  }
 
   void _startRestCountdown() {
+    _restTimer?.cancel();
     setState(() {
       isResting = true;
       restSecondsLeft = 120;
     });
 
-    _restTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+
       setState(() {
         restSecondsLeft--;
         if (restSecondsLeft <= 0) {
@@ -52,41 +83,44 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     });
     widget.onProgressUpdated();
 
-    print(': ${widget.exerciseIndexInDay}, : ${widget.progress.currentExercise}');
     if (setsDone >= widget.exercise.sets &&
         widget.exercise.dayId == widget.progress.currentDay &&
         widget.exerciseIndexInDay == widget.progress.currentExercise) {
       widget.progress.currentExercise++;
-      await FirebaseUserService().updateUserProgress(FirebaseAuth.instance.currentUser!.uid, widget.progress);
+      await FirebaseUserService().updateUserProgress(
+        FirebaseAuth.instance.currentUser!.uid,
+        widget.progress,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Bạn đã hoàn thành bài tập!')),
+        const SnackBar(content: Text('Bạn đã hoàn thành bài tập!')),
       );
     }
-      _startRestCountdown();
+    _startRestCountdown();
   }
 
   @override
   void dispose() {
     _restTimer?.cancel();
+    _videoController.dispose();
     super.dispose();
   }
 
-  Widget _buildCircleInfo(String label, String value, {Color color = Colors.teal}) {
+  Widget _buildInfoCard(String label, String value, IconData icon, Color color) {
     return Column(
       children: [
         Container(
-          width: 70,
-          height: 70,
+          width: 80,
+          height: 80,
           decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
             shape: BoxShape.circle,
             border: Border.all(color: color, width: 3),
           ),
-          child: Center(
-            child: Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          ),
+          child: Icon(icon, color: color, size: 32),
         ),
-        SizedBox(height: 6),
-        Text(label, style: TextStyle(fontSize: 14)),
+        const SizedBox(height: 6),
+        Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(fontSize: 14)),
       ],
     );
   }
@@ -97,169 +131,213 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(ex.name),
+        title: Text(ex.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.orange, Colors.redAccent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(ex.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 10),
-                    if (ex.description != null)
-                      Text("Mô tả: ${ex.description!}", style: TextStyle(fontSize: 16)),
-                    if (ex.note != null && ex.note!.isNotEmpty)
-                      Text("\nGhi chú: ${ex.note!}", style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic)),
-                    if (ex.step != null && ex.step!.isNotEmpty)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 10),
-                          Text("Các bước:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                          ...ex.step!.map((s) => Text('- $s', style: TextStyle(fontSize: 15))).toList(),
-                        ],
+            if (ex.videoUrl.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Video hướng dẫn",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: AspectRatio(
+                      aspectRatio: _videoController.value.isInitialized
+                          ? _videoController.value.aspectRatio
+                          : 16 / 9,
+                      child: VideoPlayer(_videoController),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: IconButton(
+                      iconSize: 50,
+                      icon: Icon(
+                        _videoController.value.isPlaying
+                            ? Icons.pause_circle_filled
+                            : Icons.play_circle_fill,
+                        color: Colors.orangeAccent[700],
                       ),
-                    if (ex.note != null && ex.note!.isNotEmpty)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 10),
-                          Text("Lưu ý:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                          Text('- ${ex.note!}', style: TextStyle(fontSize: 15)),
-                        ],
-                      ),
-                  ],
-                ),
+                      onPressed: () {
+                        setState(() {
+                          _videoController.value.isPlaying
+                              ? _videoController.pause()
+                              : _videoController.play();
+                        });
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildCircleInfo('Repeats', '${ex.reps}'),
-                _buildCircleInfo('Rest', isResting ? '${(restSecondsLeft ~/ 60).toString().padLeft(2, '0')}:${(restSecondsLeft % 60).toString().padLeft(2, '0')}' : '2:00'),
+                _buildInfoCard('Repeats', '${ex.reps}', Icons.repeat, Colors.blue),
+                _buildInfoCard(
+                  'Rest',
+                  isResting
+                      ? '${(restSecondsLeft ~/ 60).toString().padLeft(2, '0')}:${(restSecondsLeft % 60).toString().padLeft(2, '0')}'
+                      : '2:00',
+                  Icons.timer,
+                  Colors.orange,
+                ),
                 Column(
                   children: [
                     Stack(
                       alignment: Alignment.center,
                       children: [
                         SizedBox(
-                          width: 70,
-                          height: 70,
+                          width: 80,
+                          height: 80,
                           child: CircularProgressIndicator(
                             value: setsDone / ex.sets,
-                            strokeWidth: 5,
+                            strokeWidth: 6,
                             backgroundColor: Colors.grey[300],
                             color: Colors.teal,
                           ),
                         ),
-                        Text(
-                          '${((setsDone / ex.sets) * 100).toInt()}%',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        )
+                        Text('${((setsDone / ex.sets) * 100).toInt()}%',
+                            style: const TextStyle(fontWeight: FontWeight.bold)),
                       ],
                     ),
-                    SizedBox(height: 6),
-                    Text('Sets done'),
+                    const SizedBox(height: 6),
+                    const Text('Sets done'),
                   ],
                 ),
               ],
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             TextField(
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: 'Nhập số reps đã tập',
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.fitness_center),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onChanged: (val) => inputReps = int.tryParse(val) ?? 0,
             ),
-            SizedBox(height: 12),
-              Center(
-                child: ElevatedButton.icon(
-                  onPressed:  _onAddSet,
-                  icon: Icon(Icons.add),
-                  label: Text('Thêm Set'),
+            const SizedBox(height: 12),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: _onAddSet,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                ),
+                icon: const Icon(Icons.add),
+                label: const Text('Thêm Set', style: TextStyle(fontSize: 16)),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(ex.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+                    if (ex.description != null)
+                      Text("Mô tả: ${ex.description!}", style: const TextStyle(fontSize: 16)),
+                    if (ex.step != null && ex.step!.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      const Text("Các bước:", style: TextStyle(fontWeight: FontWeight.w600)),
+                      ...ex.step!.map((s) => Text('- $s')).toList(),
+                    ],
+                    if (ex.note != null && ex.note!.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      const Text("Lưu ý:", style: TextStyle(fontWeight: FontWeight.w600)),
+                      Text('- ${ex.note!}'),
+                    ],
+                  ],
                 ),
               ),
-            SizedBox(height: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Lịch sử tập:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
-                ...repsHistory.asMap().entries.map((entry) =>
-                    Text('Set ${entry.key + 1}: ${entry.value} reps')
-                ),
-              ],
             ),
-            SizedBox(height: 20),
-              Center(
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    final user = FirebaseAuth.instance.currentUser;
-                    final isVip = await FirebaseUserService().isVip(user!.uid);
-                    if (isVip) {
-                      if (ex.videoUrl.startsWith('assets/')) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                LocalVideoPlayerScreen(
-                                    videoAssetPath: ex.videoUrl),
-                          ),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Video không hỗ trợ: ${ex
-                              .videoUrl}')),
-                        );
-                      }
-                    }
-                    else {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext dialogContext) {
-                          return AlertDialog(
-                            title: Text('Nâng cấp tài khoản'),
-                            content: Text('Tính năng này chỉ dành cho người dùng VIP. Bạn có muốn nâng cấp không?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(dialogContext).pop(); // đóng dialog
-                                },
-                                child: Text('Hủy'),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.of(dialogContext).pop(); // đóng dialog
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => UpgradeVipPage(),
-                                    ),
-                                  );
-                                },
-                                child: Text('Nâng cấp'),
-                              ),
-                            ],
-                          );
-                        },
+            const SizedBox(height: 16),
+            const Text('Lịch sử tập:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Wrap(
+              spacing: 8,
+              children: repsHistory
+                  .asMap()
+                  .entries
+                  .map((e) => Chip(label: Text('Set ${e.key + 1}: ${e.value} reps')))
+                  .toList(),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  final user = FirebaseAuth.instance.currentUser;
+                  final isVip = await FirebaseUserService().isVip(user!.uid);
+                  if (isVip) {
+                    if (ex.videoVip.startsWith('assets/')) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => LocalVideoPlayerScreen(videoAssetPath: ex.videoVip),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Video không hỗ trợ: ${ex.videoVip}')),
                       );
                     }
-                  },
-                  icon: Icon(Icons.play_circle_fill),
-                  label: Text('Xem video hướng dẫn'),
+                  } else {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext dialogContext) {
+                        return AlertDialog(
+                          title: const Text('Nâng cấp tài khoản'),
+                          content: const Text(
+                              'Tính năng này chỉ dành cho người dùng VIP. Bạn có muốn nâng cấp không?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(dialogContext).pop(),
+                              child: const Text('Hủy'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(dialogContext).pop();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => UpgradeVipPage()),
+                                );
+                              },
+                              child: const Text('Nâng cấp'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  backgroundColor: Colors.orangeAccent[700],
                 ),
+                icon: const Icon(Icons.play_circle_fill, size: 28),
+                label: const Text('Xem video hướng dẫn', style: TextStyle(fontSize: 16)),
               ),
+            ),
           ],
         ),
       ),

@@ -34,7 +34,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           vipExpiry: null,
           activePlans: [],
 
-          isPT: false, // Default value for isPT
+          isPT: false,
+          challenge: 0,
         );
         emit(Authenticated(fallbackUser));
       }
@@ -65,6 +66,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           vipExpiry: null,
           activePlans: [],
           isPT: false, // Default value for isPT
+          challenge: 0,
         );
         emit(Authenticated(fallbackUser));
       }
@@ -100,6 +102,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         vipExpiry: null,
         activePlans: [],
         isPT: false, // Default value for isPT
+        challenge: 0,
       );
 
       await db.collection('users').doc(firebaseUser.uid).set({
@@ -142,6 +145,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           vipExpiry: data['vipExpiry'] != null ? DateTime.parse(data['vipExpiry']) : null,
           isPT: data['isPT'] ?? false, // Default value for isPT
           activePlans: [],
+          challenge: data['challenge'],
         );
       } else {
         return null;

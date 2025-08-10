@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../Achievement/pages/Achievement_pages.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../auth/bloc/auth_event.dart';
 import '../../auth/bloc/auth_state.dart';
@@ -7,8 +8,22 @@ import '../../auth/pages/edit_profile_page.dart';
 import '../../auth/pages/login_page.dart';
 import '../../auth/pages/upgrade_vip_page.dart';
 
-class ProfilePage extends StatelessWidget {
+
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      context.read<AuthBloc>().reloadCurrentUser();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,14 +103,19 @@ class ProfilePage extends StatelessWidget {
                                   letterSpacing: 0.5,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                user.email,
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  color: Colors.white70,
-                                  fontStyle: FontStyle.italic,
-                                ),
+                              Row(
+                                children: [
+                                  const Icon(Icons.emoji_events, color: Colors.amber, size: 20),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '${user.challenge - 1}',
+                                    style: const TextStyle(
+                                      fontSize: 17,
+                                      color: Colors.white70,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -336,7 +356,7 @@ class ProfilePage extends StatelessWidget {
                                     onPressed: () async {
                                       await context.read<AuthBloc>().upgradeToPT();
                                       await context.read<AuthBloc>().reloadCurrentUser();
-                                  },
+                                    },
                                     style: ElevatedButton.styleFrom(
                                       foregroundColor: Colors.orange,
                                       shape: const RoundedRectangleBorder(
@@ -350,6 +370,39 @@ class ProfilePage extends StatelessWidget {
                               ],
                             ],
                           ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Achievement Button Section
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.emoji_events, color: Colors.amber),
+                        label: const Text('Achievements', style: TextStyle(fontSize: 19, color: Colors.red)),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AchievementPage(
+                                  userId: user.id,
+                                onProgressUpdated: () async {
+                                  await context.read<AuthBloc>().reloadCurrentUser();
+                                  setState(() {});
+                                },
+                              ), // Đảm bảo bạn đã tạo AchievementPage
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.amber,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                          ),
+                          elevation: 2,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
                       ),
                     ),

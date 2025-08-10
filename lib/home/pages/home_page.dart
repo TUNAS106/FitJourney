@@ -1,14 +1,13 @@
-import 'package:fitjourney/features/progress_tracking/pages/Body_Progress_page.dart';
-import 'package:fitjourney/features/progress_tracking/pages/body_metrics_form.dart';
-import 'package:fitjourney/features/social/pages/post_create_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fitjourney/features/social/pages/post_feed_screen.dart';
 import 'package:flutter/material.dart';
+import '../../features/AI_features/Ai_chat_screen.dart';
 import '../../features/chat/widget/chat_tab_widget.dart';
 import '../../features/more/pages/more_page.dart';
 import '../../features/notebook/pages/notebook_page.dart';
-import '../../features/social/pages/feed_screen.dart';
+import '../../features/progress_tracking/controller/body_metrics_controller.dart';
 import '../../features/training_modes/page/home_pagetraining.dart';
-//import '../../training/pages/training_plan_screen.dart';
+
 
 
 class HomePage extends StatefulWidget {
@@ -18,14 +17,22 @@ class HomePage extends StatefulWidget {
 
 class _HomeScreenState extends State<HomePage> {
   int _currentIndex = 0;
+  final BodyMetricsController _metricsController = BodyMetricsController(); // Thêm dòng này
 
+  @override
+  void initState() {
+    super.initState();
+    _checkBmiReminder();
+  }
+  Future<void> _checkBmiReminder() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await _metricsController.checkUserBmiReminder(user.uid, context);
+    }
+  }
   final List<Widget> _screens = [
     HomePageTraining(),
-    //FeedScreen(),
-    //PostCreateScreen(),
     PostFeedScreen(),
-    //BodyMetricsForm(),
-    //BodyProgressScreen(),
     ChatTabWidget(),
     NotebookScreen(),
     MoreScreen(),
@@ -45,6 +52,15 @@ class _HomeScreenState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.orange, Colors.redAccent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         title: Text(_titles[_currentIndex]),
         centerTitle: true,
       ),

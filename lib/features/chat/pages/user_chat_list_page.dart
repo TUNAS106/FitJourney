@@ -1,7 +1,8 @@
-// screens/user_chat_list_screen.dart - Danh sách chat cho User thường
+
 import 'package:fitjourney/features/chat/pages/pt_list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../AI_features/Ai_chat_screen.dart';
 import '../../auth/bloc/auth_state.dart';
 import '../data/models/chat_room.dart';
 import '../../auth/data/models/user.dart' as app;
@@ -147,6 +148,40 @@ class UserChatListScreen extends StatelessWidget {
           );
         },
       ),
+      floatingActionButton: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Thẻ text
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.indigo[900], // nền xanh đậm
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              "Tôi là gemini,\nRất vui để hỗ trợ quá trình tập luyện cho bạn,\nHãy nháy vào đây để đặt câu hỏi",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          SizedBox(width: 4), // khoảng cách giữa text và nút
+          // Nút AI tròn
+          FloatingActionButton(
+            backgroundColor: Colors.orange,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => GeminiChatScreen()),
+              );
+            },
+            child: Icon(Icons.smart_toy, size: 26, color: Colors.white),
+          ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

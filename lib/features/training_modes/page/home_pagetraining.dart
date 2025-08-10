@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:table_calendar/table_calendar.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../auth/bloc/auth_state.dart';
 import '../../auth/data/models/User.dart';
@@ -34,16 +35,17 @@ class _HomePageTrainingState extends State<HomePageTraining> {
 
       _allPlansFuture = _repository.getAllPlans();
       _progressFuture = _firebaseService.fetchUserProgress(_user.id);
-      // Tính totalDays cho mỗi plan và lưu vào map
+
       final allPlans = await _allPlansFuture;
       for (var plan in allPlans) {
         final count = await _repository.getDayCountForPlan(plan.id!);
         totalDayMap[plan.id!] = count;
       }
 
-      setState(() {}); // Đảm bảo cập nhật lại UI
+      setState(() {});
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
@@ -52,6 +54,7 @@ class _HomePageTrainingState extends State<HomePageTraining> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.grey.shade100,
       body: FutureBuilder<List<WorkoutPlan>>(
         future: _allPlansFuture,
         builder: (context, planSnapshot) {
@@ -74,183 +77,145 @@ class _HomePageTrainingState extends State<HomePageTraining> {
               }
 
               final progressList = progressSnapshot.data ?? [];
+              final progressMap = {for (var p in progressList) p.planId: p};
 
-              // Tạo map từ planId để dễ tra cứu tiến độ
-              final progressMap = {
-                for (var p in progressList) p.planId: p
-              };
+              final activePlans =
+              plans.where((p) => progressMap.containsKey(p.id)).toList();
+              final suggestedPlans =
+              plans.where((p) => !progressMap.containsKey(p.id)).toList();
 
-              // Phân loại
-              final activePlans = plans.where((p) => progressMap.containsKey(p.id)).toList();
-              final suggestedPlans = plans.where((p) => !progressMap.containsKey(p.id)).toList();
+              return ListView(
+                padding: EdgeInsets.all(16),
+                children: [
+                  _buildSectionTitle('Đang tập', Icons.play_circle_fill),
+                  if (activePlans.isEmpty)
+                    _buildEmptyMessage('Bạn chưa có kế hoạch tập luyện nào đang hoạt động.'),
+                  ...activePlans.map((plan) {
+                    final progress = progressMap[plan.id]!;
+                    final totalDays = totalDayMap[plan.id] ?? 1;
+                    final percent =
+                    ((progress.currentDay - 1) / totalDays).clamp(0, 1);
 
-              return SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSectionTitle('Đang tập'),
-                    if (activePlans.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text('Bạn chưa có kế hoạch tập luyện nào đang hoạt động.'),
-                      ),
-                    ...activePlans.map((plan) {
-                      final progress = progressMap[plan.id]!;
-                      final totalDays = totalDayMap[plan.id] ?? 1;
-                      final percent = ((progress.currentDay-1) / totalDays * 100).clamp(0, 100).toInt();
-
-                      return ListTile(
-                        leading: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              plan.gender.toLowerCase() == 'female'
-                                  ? Icons.female
-                                  : Icons.male,
-                              color: plan.gender.toLowerCase() == 'female'
-                                  ? Colors.pink
-                                  : Colors.blue,
+                    return _buildPlanCard(
+                      plan: plan,
+                      description: plan.description,
+                      progressValue: percent.toDouble(),
+                      progressText: '${(percent * 100).toInt()}% hoàn thành',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => WorkoutPlanModel(
+                              plan: plan,
+                              progress: progress,
+                              onProgressUpdated: () {
+                                setState(() {}); // cập nhật lại UI
+                              },
                             ),
-                            SizedBox(height: 4),
-                            Icon(
-                              plan.location.toLowerCase() == 'gym'
-                                  ? Icons.fitness_center
-                                  : Icons.home,
-                              color: Colors.grey[600],
-                              size: 20,
-                            ),
-                          ],
-                        ),
-                        title: Text(plan.title),
-                        subtitle:Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(plan.description), // Thêm description
-                            Text('$percent% hoàn thành'),
-                          ],
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: Text('Xác nhận xóa'),
-                                content: Text('Bạn có chắc chắn muốn xóa kế hoạch này khỏi danh sách đang tập không?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context, false),
-                                    child: Text('Hủy'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context, true),
-                                    child: Text('Xóa', style: TextStyle(color: Colors.red)),
-                                  ),
-                                ],
-                              ),
-                            );
-                            if (confirm == true) {
-                              try {
-                                await FirebaseUserService().removeUserProgress(_user.id, plan.id!);
-                                setState(() {
-                                  _progressFuture = _firebaseService.fetchUserProgress(_user.id);
-                                });
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Đã xóa kế hoạch khỏi danh sách đang tập.')),
-                                );
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Xóa thất bại: $e')),
-                                );
-                              }
-                            }
-                          },
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => WorkoutPlanModel(plan: plan, progress: progress,)),
-                          );
-                        },
-                      );
-                    }),
-
-
-                    Divider(),
-                    _buildSectionTitle('Gợi ý'),
-                    if (suggestedPlans.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text('Không có kế hoạch gợi ý nào'),
-                      ),
-                    ...suggestedPlans.map((plan) {
-                      return ListTile(
-                        leading: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              plan.gender.toLowerCase() == 'female'
-                                  ? Icons.female
-                                  : Icons.male,
-                              color: plan.gender.toLowerCase() == 'female'
-                                  ? Colors.pink
-                                  : Colors.blue,
-                            ),
-                            SizedBox(height: 4),
-                            Icon(
-                              plan.location.toLowerCase() == 'gym'
-                                  ? Icons.fitness_center
-                                  : Icons.home,
-                              color: Colors.grey[600],
-                              size: 20,
-                            ),
-                          ],
-                        ),
-                        title: Text(plan.title),
-                        subtitle: Text(plan.description),
-                        trailing: IconButton(
-                          icon: Icon(Icons.add),
-                          onPressed: () async {
-                            final hasIncompletePlan = activePlans.any((activePlan) {
-                              final progress = progressMap[activePlan.id];
-                              if (progress == null) return false;
-                              final percent = ((progress.currentDay -1) / (totalDayMap[plan.id] ?? 1) * 100);
-                              return percent < 100;
+                          ),
+                        );
+                      },
+                      onDelete: () async {
+                        final confirm = await _showConfirmDialog();
+                        if (confirm) {
+                          try {
+                            await FirebaseUserService()
+                                .removeUserProgress(_user.id, plan.id!);
+                            setState(() {
+                              _progressFuture =
+                                  _firebaseService.fetchUserProgress(_user.id);
                             });
-                            if (hasIncompletePlan) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Bạn đã có kế hoạch tập luyện chưa hoàn thành.')),
-                              );
-                              return;
-                            }
-
-                            final newProgress = WorkoutPlanProgress(
-                              planId: plan.id ?? 0,
-                              currentDay: 1,
-                              currentExercise: 0,
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Đã xóa kế hoạch.')),
                             );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Xóa thất bại: $e')),
+                            );
+                          }
+                        }
+                      },
+                      isSuggested: false,
+                    );
+                  }),
 
-                            try {
-                              await _firebaseService.addUserProgress(_user.id, newProgress);
+                  SizedBox(height: 20),
+                  _buildSectionTitle('Gợi ý', Icons.lightbulb_outline),
+                  if (suggestedPlans.isEmpty)
+                    _buildEmptyMessage('Không có kế hoạch gợi ý nào'),
+                  ...suggestedPlans.map((plan) {
+                    return _buildPlanCard(
+                      plan: plan,
+                      description: plan.description,
+                      onAdd: () async {
+                        final hasIncompletePlan = activePlans.any((activePlan) {
+                          final progress = progressMap[activePlan.id];
+                          if (progress == null) return false;
+                          final percent = ((progress.currentDay - 1) /
+                              (totalDayMap[plan.id] ?? 1));
+                          return percent < 1;
+                        });
+                        if (hasIncompletePlan) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(
+                                    'Bạn đã có kế hoạch tập luyện chưa hoàn thành.')),
+                          );
+                          return;
+                        }
 
-                              setState(() {
-                                _progressFuture = _firebaseService.fetchUserProgress(_user.id);
-                              });
+                        final newProgress = WorkoutPlanProgress(
+                          planId: plan.id ?? 0,
+                          currentDay: 1,
+                          currentExercise: 0,
+                        );
 
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Đã thêm vào danh sách đang tập')),
-                              );
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Thêm thất bại: $e')),
-                              );
-                            }
-                          },
-                        ),
-                      );
-                    }),
-                  ],
-                ),
+                        try {
+                          await _firebaseService.addUserProgress(
+                              _user.id, newProgress);
+                          setState(() {
+                            _progressFuture =
+                                _firebaseService.fetchUserProgress(_user.id);
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Đã thêm vào danh sách.')),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Thêm thất bại: $e')),
+                          );
+                        }
+                      },
+                      isSuggested: true,
+                    );
+                  }),
+                  // ======= LỊCH THÁNG =======
+                  TableCalendar(
+                    firstDay: DateTime.utc(2020, 1, 1),
+                    lastDay: DateTime.utc(2030, 12, 31),
+                    focusedDay: DateTime.now(),
+                    calendarFormat: CalendarFormat.month,
+                    headerStyle: HeaderStyle(formatButtonVisible: false, titleCentered: true),
+                    selectedDayPredicate: (day) {
+                      return isSameDay(day, DateTime.now()); // đánh dấu ngày hôm nay
+                    },
+                    calendarStyle: CalendarStyle(
+                      todayDecoration: BoxDecoration(
+                        color: Colors.blueAccent,
+                        shape: BoxShape.circle,
+                      ),
+                      selectedDecoration: BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    onDaySelected: (selectedDay, focusedDay) {
+                      // nếu muốn xử lý chọn ngày, thêm logic ở đây
+                    },
+                  ),
+                  SizedBox(height: 20),
+                  // ==========================
+                ],
               );
             },
           );
@@ -259,13 +224,117 @@ class _HomePageTrainingState extends State<HomePageTraining> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.blueAccent),
+        SizedBox(width: 8),
+        Text(
+          title,
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyMessage(String message) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
-      child: Text(
-        title,
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Text(message, style: TextStyle(color: Colors.grey)),
+    );
+  }
+
+  Widget _buildPlanCard({
+    required WorkoutPlan plan,
+    required String description,
+    double? progressValue,
+    String? progressText,
+    VoidCallback? onTap,
+    VoidCallback? onDelete,
+    VoidCallback? onAdd,
+    required bool isSuggested,
+  }) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 3,
+      margin: EdgeInsets.symmetric(vertical: 8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                plan.gender.toLowerCase() == 'female'
+                    ? Icons.female
+                    : Icons.male,
+                size: 36,
+                color: plan.gender.toLowerCase() == 'female'
+                    ? Colors.pink
+                    : Colors.blue,
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(plan.title,
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 4),
+                    Text(description,
+                        style: TextStyle(color: Colors.grey[700])),
+                    if (progressValue != null) ...[
+                      SizedBox(height: 8),
+                      LinearProgressIndicator(
+                        value: progressValue,
+                        color: Colors.green,
+                        backgroundColor: Colors.grey[300],
+                      ),
+                      SizedBox(height: 4),
+                      Text(progressText ?? '',
+                          style: TextStyle(
+                              fontSize: 12, color: Colors.grey[600])),
+                    ]
+                  ],
+                ),
+              ),
+              SizedBox(width: 8),
+              if (isSuggested)
+                IconButton(
+                  icon: Icon(Icons.add_circle, color: Colors.blueAccent),
+                  onPressed: onAdd,
+                ),
+              if (!isSuggested)
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: onDelete,
+                ),
+            ],
+          ),
+        ),
       ),
     );
+  }
+
+  Future<bool> _showConfirmDialog() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Xác nhận xóa'),
+        content: Text('Bạn có chắc chắn muốn xóa kế hoạch này không?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('Hủy')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text('Xóa', style: TextStyle(color: Colors.red))),
+        ],
+      ),
+    ) ??
+        false;
   }
 }
