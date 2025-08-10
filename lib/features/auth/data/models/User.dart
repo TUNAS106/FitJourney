@@ -10,6 +10,9 @@ class User {
   final bool isVip;
   final DateTime? vipExpiry; // VIP expiry date
   final bool isPT;
+  final String? phoneNumber; // Số điện thoại
+  final String? location;    // Địa điểm
+  final String? bio;         // Tiểu sử
   List<WorkoutPlanProgress> activePlans;
   final int challenge;
 
@@ -22,7 +25,10 @@ class User {
     required this.avatarUrl,
     required this.isVip,
     this.vipExpiry,
-    this.isPT = false, // Default value for isPT
+    this.isPT = false,
+    this.phoneNumber,
+    this.location,
+    this.bio,
     required this.activePlans,
     required this.challenge,
   });
@@ -40,6 +46,9 @@ class User {
       activePlans: [],
       isPT: map['isPT'] ?? false,
       challenge: map['challenge'] ?? 0,
+      phoneNumber: map['phoneNumber'], // có thể null
+      location: map['location'],       // có thể null
+      bio: map['bio'],                 // có thể null
     );
   }
 
@@ -55,6 +64,9 @@ class User {
       'vipExpiry': vipExpiry?.toIso8601String(),
       'isPT': isPT, // Include isPT in the map
       'challenge': challenge,
+      'phoneNumber': phoneNumber,
+      'location': location,
+      'bio': bio,
     };
   }
 }

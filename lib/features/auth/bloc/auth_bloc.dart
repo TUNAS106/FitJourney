@@ -36,6 +36,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
           isPT: false,
           challenge: 0,
+          phoneNumber: null,
+          bio: null,
+          location: null,
         );
         emit(Authenticated(fallbackUser));
       }
@@ -67,6 +70,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           activePlans: [],
           isPT: false, // Default value for isPT
           challenge: 0,
+          phoneNumber: null,
+          bio: null,
+          location: null,
         );
         emit(Authenticated(fallbackUser));
       }
@@ -103,6 +109,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         activePlans: [],
         isPT: false, // Default value for isPT
         challenge: 0,
+        phoneNumber: null,
+        bio: null,
+        location: null,
       );
 
       await db.collection('users').doc(firebaseUser.uid).set({
@@ -114,7 +123,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         'avatarUrl': user.avatarUrl,
         'isVip': user.isVip,
         'vipExpiry': user.vipExpiry?.toIso8601String(),
-        'isPT': user.isPT, // Include isPT in the user data
+        'isPT': user.isPT,
+        'phoneNumber': null,
+        'bio': null,
+        'location': null,
       });
 
       final firestoreUser = await fetchUserFromFirestore(firebaseUser.uid);
@@ -143,7 +155,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           avatarUrl: data['avatarUrl'] ?? '',
           isVip: data['isVip'] ?? false,
           vipExpiry: data['vipExpiry'] != null ? DateTime.parse(data['vipExpiry']) : null,
-          isPT: data['isPT'] ?? false, // Default value for isPT
+          isPT: data['isPT'] ?? false,
+          phoneNumber: data['phoneNumber'],
+          bio: data['bio'],
+          location: data['location'],
           activePlans: [],
           challenge: data['challenge'],
         );
@@ -161,23 +176,45 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required String email,
     required String gender,
     required int age,
+    String? phoneNumber,
+    String? bio,
+    String? location,
   }) async {
     final uid = _firebaseAuth.currentUser?.uid;
     if (uid != null) {
       try {
-        await db.collection('users').doc(uid).update({
+        final updateData = {
           'name': name,
-          'email': email,
+          // 'email': email,  // không cập nhật email
           'gender': gender,
           'age': age,
-        });
+        };
+
+        if (phoneNumber != null && phoneNumber.isNotEmpty) {
+          final phoneRegex = RegExp(r'^0\d{9}$');
+          if (phoneRegex.hasMatch(phoneNumber)) {
+            updateData['phoneNumber'] = phoneNumber;
+          } else {
+
+          }
+        }
+        if (bio != null) updateData['bio'] = bio;
+        if (location != null) updateData['location'] = location;
+
+        await db.collection('users').doc(uid).update(updateData);
+
+        // Reload user info và emit state mới
+        await reloadCurrentUser();
       } catch (e) {
         print('Error updating user info: $e');
+        // Có thể emit một state lỗi nếu muốn thông báo UI
+        // emit(AuthError('Failed to update user info'));
       }
     } else {
       print('No user UID found');
     }
   }
+
 
   Future<void> reloadCurrentUser() async {
     final uid = _firebaseAuth.currentUser?.uid;
@@ -188,6 +225,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     }
   }
+
   Future<void> upgradeToVip({required int days}) async {
     final uid = _firebaseAuth.currentUser?.uid;
     if (uid != null) {
@@ -198,6 +236,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       });
     }
   }
+
   Future<void> upgradeToPT() async {
     final uid = _firebaseAuth.currentUser?.uid;
     if (uid != null) {

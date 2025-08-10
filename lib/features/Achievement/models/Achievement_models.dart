@@ -26,7 +26,7 @@ final List<Achievement> allAchievements = [
   Achievement(id: 16, description: "Achieve 100,000 steps total"),
   Achievement(id: 17, description: "Do 50 push-ups in one session"),
   Achievement(id: 18, description: "Do 200 push-ups total"),
-  Achievement(id: 29, description: "Invite a friend to join the app"),
+  Achievement(id: 19, description: "Invite a friend to join the app"),
   Achievement(id: 20, description: "Lose 5kg of weight"),
   Achievement(id: 21, description: "Gain 1kg of muscle"),
   Achievement(id: 22, description: "Reach your daily protein goal 7 days in a row"),
