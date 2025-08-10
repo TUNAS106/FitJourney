@@ -62,7 +62,7 @@ class BodyProgressChartState extends State<BodyProgressChart> {
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blue.shade50, Colors.blue.shade100],
+                colors: [Colors.orange.shade100, Colors.red.shade200],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),

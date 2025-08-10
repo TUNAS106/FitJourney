@@ -112,11 +112,11 @@ class _BodyMetricsFormState extends State<BodyMetricsForm> {
     );
   }
 
-  void _submitForm() {
+  void _submitForm() async {
     if (_formKey.currentState?.validate() ?? false) {
       _formKey.currentState!.save();
       if (_weight != null && _height != null && _age != null) {
-        _controller.submitMetrics(
+        await _controller.submitMetrics(
           context: context,
           weight: _weight!,
           height: _height!,
@@ -125,6 +125,7 @@ class _BodyMetricsFormState extends State<BodyMetricsForm> {
         if (widget.onSubmitted != null) {
           widget.onSubmitted!();
         }
+        Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Vui lòng nhập đầy đủ thông tin hợp lệ")),

@@ -35,7 +35,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           activePlans: [],
 
           isPT: false,
-          challenge: 0,
+          challenge: 1,
           phoneNumber: null,
           bio: null,
           location: null,
@@ -69,7 +69,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           vipExpiry: null,
           activePlans: [],
           isPT: false, // Default value for isPT
-          challenge: 0,
+          challenge: 1,
           phoneNumber: null,
           bio: null,
           location: null,
@@ -108,7 +108,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         vipExpiry: null,
         activePlans: [],
         isPT: false, // Default value for isPT
-        challenge: 0,
+        challenge: 1,
         phoneNumber: null,
         bio: null,
         location: null,

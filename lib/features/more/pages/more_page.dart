@@ -20,6 +20,9 @@ class _MoreScreenState extends State<MoreScreen> {
             //Navigator.pop(context);
             _chartKey.currentState?.refresh();
           },
+          onProgressUpdated: () {
+            setState(() {}); // cập nhật lại UI
+          },
         ),
       ),
     );
@@ -59,15 +62,22 @@ class _MoreScreenState extends State<MoreScreen> {
 
 class BodyMetricsFormPage extends StatelessWidget {
   final VoidCallback? onSubmitted;
-  const BodyMetricsFormPage({Key? key, this.onSubmitted}) : super(key: key);
+  final VoidCallback onProgressUpdated;
+  const BodyMetricsFormPage({Key? key, this.onSubmitted, required this.onProgressUpdated}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Add Body Metrics')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: BodyMetricsForm(onSubmitted: onSubmitted),
+    return WillPopScope(
+      onWillPop: () async {
+        onProgressUpdated();
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(title: Text('Add Body Metrics')),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: BodyMetricsForm(onSubmitted: onSubmitted),
+        ),
       ),
     );
   }

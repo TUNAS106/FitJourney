@@ -51,6 +51,13 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
         _videoController.play();
         setState(() {});
       });
+      _videoController.addListener(() {
+        if (_videoController.value.position == _videoController.value.duration &&
+            _videoController.value.isInitialized) {
+          _videoController.seekTo(Duration.zero);
+          _videoController.play();
+        }
+      });
     }
   }
 

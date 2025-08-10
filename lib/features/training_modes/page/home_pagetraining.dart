@@ -209,9 +209,27 @@ class _HomePageTrainingState extends State<HomePageTraining> {
                         shape: BoxShape.circle,
                       ),
                     ),
-                    onDaySelected: (selectedDay, focusedDay) {
-                      // nếu muốn xử lý chọn ngày, thêm logic ở đây
-                    },
+                    // 🔹 Thêm phần này để vẽ icon tạ
+                    calendarBuilders: CalendarBuilders(
+                      defaultBuilder: (context, day, focusedDay) {
+                        bool isOddDay = day.day % 2 != 0; // ngày lẻ
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '${day.day}',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                            if (isOddDay) // chỉ hiển thị icon nếu là ngày lẻ
+                              Icon(
+                                Icons.fitness_center,
+                                size: 14,
+                                color: Colors.grey,
+                              ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                   SizedBox(height: 20),
                   // ==========================

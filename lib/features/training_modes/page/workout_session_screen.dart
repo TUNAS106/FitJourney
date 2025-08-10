@@ -288,36 +288,45 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   void _showFinishDialog() {
     _confettiController.play(); // Bắt đầu pháo hoa
 
-    showDialog(
-      context: context,
-      builder: (_) => Stack(
-        alignment: Alignment.topCenter,
-        children: [
-          AlertDialog(
-            title: const Text('Hoàn thành buổi tập'),
-            content: Text(
-              '💪 Hôm nay bạn đã tập rất tốt!\n'
-                  '⏱ Thời gian: ${_elapsedTime.inMinutes} phút ${_elapsedTime.inSeconds % 60} giây\n'
-                  '🔥 Hãy duy trì tinh thần này nhé!',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('OK'),
+    final exercisesFuture = _exercisesFuture;
+    exercisesFuture.then((exercises) {
+      final isCompleted = widget.progress.currentExercise >= exercises.length;
+      showDialog(
+        context: context,
+        builder: (_) => Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            AlertDialog(
+              title: Text(isCompleted ? 'Hoàn thành buổi tập' : 'Kết thúc tập'),
+              content: Text(
+                isCompleted
+                    ? '💪 Hôm nay bạn đã tập rất tốt!\n'
+                    '⏱ Thời gian: ${_elapsedTime.inMinutes} phút ${_elapsedTime.inSeconds % 60} giây\n'
+                    '🔥 Hãy duy trì tinh thần này nhé!'
+                    : '💪 Bạn đã kết thúc bài tập hôm nay.\n🔥 Hãy cố gắng hơn vào ngày mai nhé\n'
+                    '⏱ Thời gian: ${_elapsedTime.inMinutes} phút ${_elapsedTime.inSeconds % 60} giây',
               ),
-            ],
-          ),
-          ConfettiWidget(
-            confettiController: _confettiController,
-            blastDirectionality: BlastDirectionality.explosive,
-            shouldLoop: false,
-            colors: const [Colors.red, Colors.orange, Colors.blue, Colors.purple],
-          ),
-        ],
-      ),
-    );
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+            if(isCompleted)
+            // Hiển thị pháo hoa chỉ khi đã hoàn thành buổi tập
+            ConfettiWidget(
+              confettiController: _confettiController,
+              blastDirectionality: BlastDirectionality.explosive,
+              shouldLoop: false,
+              colors: const [Colors.red, Colors.orange, Colors.blue, Colors.purple],
+            ),
+          ],
+        ),
+      );
+    });
   }
 
 

@@ -80,7 +80,7 @@ Béo phì độ II (nguy cơ cao).
     }
   }
 
-  void submitMetrics({
+  Future<void> submitMetrics({
     required BuildContext context,
     required double weight,
     required double height,
@@ -218,7 +218,7 @@ Béo phì độ II (nguy cơ cao).
               child: const Text('Nhập ngay'),
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => BodyMetricsFormPage()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => BodyMetricsFormPage(onProgressUpdated: () {  },)));
               },
             ),
           ],
@@ -248,7 +248,7 @@ Béo phì độ II (nguy cơ cao).
               onPressed: () {
                 Navigator.pop(context);
                 // Điều hướng tới màn nhập BMI
-                Navigator.push(context, MaterialPageRoute(builder: (_) => BodyMetricsFormPage()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => BodyMetricsFormPage(onProgressUpdated: () {  },)));
               },
             ),
           ],
