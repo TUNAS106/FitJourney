@@ -9,11 +9,31 @@ class GeminiChatScreen extends StatefulWidget {
   State<GeminiChatScreen> createState() => _GeminiChatScreenState();
 }
 
-class _GeminiChatScreenState extends State<GeminiChatScreen> {
+class _GeminiChatScreenState extends State<GeminiChatScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<Map<String, String>> _messages = [];
   bool _isLoading = false;
+
+  late AnimationController _dotsController;
+  late Animation<int> _dotsAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _dotsController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat();
+    _dotsAnimation = StepTween(begin: 0, end: 3).animate(_dotsController);
+  }
+
+  @override
+  void dispose() {
+    _dotsController.dispose();
+    super.dispose();
+  }
 
   Future<void> sendMessage(String text) async {
     if (text.trim().isEmpty) return;
@@ -85,34 +105,39 @@ class _GeminiChatScreenState extends State<GeminiChatScreen> {
   Widget _buildMessage(Map<String, String> msg) {
     bool isUser = msg["role"] == "user";
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment:
         isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           if (!isUser)
-            CircleAvatar(
-              backgroundColor: Colors.teal[400],
-              child: const Icon(Icons.smart_toy, color: Colors.white),
+            const CircleAvatar(
+              backgroundColor: Color(0xFF4FACFE),
+              child: Icon(Icons.smart_toy, color: Colors.white),
             ),
-          const SizedBox(width: 8),
+          if (!isUser) const SizedBox(width: 8),
           Flexible(
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: isUser ? Colors.blueAccent : Colors.grey[200],
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(12),
-                  topRight: const Radius.circular(12),
-                  bottomLeft: Radius.circular(isUser ? 12 : 0),
-                  bottomRight: Radius.circular(isUser ? 0 : 12),
-                ),
+                gradient: isUser
+                    ? const LinearGradient(
+                  colors: [Color(0xFF4FACFE), Color(0xFF00F2FE)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+                    : null,
+                color: isUser ? null : Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: isUser
+                    ? null
+                    : Border.all(color: const Color(0xFFD0EFFF)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
                   )
                 ],
               ),
@@ -121,17 +146,60 @@ class _GeminiChatScreenState extends State<GeminiChatScreen> {
                 style: TextStyle(
                   color: isUser ? Colors.white : Colors.black87,
                   fontSize: 15,
-                  height: 1.3,
+                  height: 1.4,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          if (isUser) const SizedBox(width: 8),
           if (isUser)
             const CircleAvatar(
-              backgroundColor: Colors.blueAccent,
+              backgroundColor: Color(0xFF4FACFE),
               child: Icon(Icons.person, color: Colors.white),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypingBubble() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            backgroundColor: Color(0xFF4FACFE),
+            child: Icon(Icons.smart_toy, color: Colors.white),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFD0EFFF)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                )
+              ],
+            ),
+            child: AnimatedBuilder(
+              animation: _dotsAnimation,
+              builder: (_, __) {
+                String dots = "." * _dotsAnimation.value;
+                return Text(
+                  "Đang suy nghĩ$dots",
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontStyle: FontStyle.italic,
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -140,25 +208,60 @@ class _GeminiChatScreenState extends State<GeminiChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF4F6FA),
       appBar: AppBar(
-        title: const Text("💬 Gemini AI"),
-        backgroundColor: Colors.blue[600],
+        title: Row(
+          children: const [
+            CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Icon(Icons.smart_toy, color: Color(0xFF4FACFE)),
+            ),
+            SizedBox(width: 8),
+            Text(
+              "Gemini AI",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF4FACFE), Color(0xFF00F2FE)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 0,
       ),
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              itemCount: _messages.length,
-              itemBuilder: (context, index) => _buildMessage(_messages[index]),
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              itemCount: _messages.length + (_isLoading ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (_isLoading && index == _messages.length) {
+                  return _buildTypingBubble();
+                }
+                return _buildMessage(_messages[index]);
+              },
             ),
           ),
-          if (_isLoading) const LinearProgressIndicator(minHeight: 2),
           SafeArea(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 8,
+                    offset: Offset(0, -2),
+                  )
+                ],
+              ),
               child: Row(
                 children: [
                   Expanded(
@@ -182,8 +285,15 @@ class _GeminiChatScreenState extends State<GeminiChatScreen> {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  CircleAvatar(
-                    backgroundColor: Colors.blue[600],
+                  Container(
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF4FACFE), Color(0xFF00F2FE)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
                     child: IconButton(
                       icon: const Icon(Icons.send, color: Colors.white),
                       onPressed: () {

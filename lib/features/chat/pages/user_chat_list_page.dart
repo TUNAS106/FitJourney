@@ -451,7 +451,7 @@ class UserChatListScreen extends StatelessWidget {
                 Icon(Icons.smart_toy, color: Colors.white, size: 18),
                 SizedBox(width: 8),
                 Text(
-                  "Tôi là Gemini – hỏi tôi bất kỳ điều gì về luyện tập!",
+                  "Tôi là Gemini \n Hỏi tôi bất kỳ điều gì về luyện tập!",
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                 ),
               ],
@@ -473,7 +473,7 @@ class UserChatListScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => GeminiChatScreen()));
               },
-              child: const Icon(Icons.arrow_forward_rounded, color: Colors.white),
+              child: const Icon(Icons.question_answer, color: Colors.white),
             ),
           ),
         ],

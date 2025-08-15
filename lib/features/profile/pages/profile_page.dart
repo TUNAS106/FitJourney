@@ -8,7 +8,7 @@ import '../../auth/pages/edit_profile_page.dart';
 import '../../auth/pages/login_page.dart';
 import '../../auth/pages/upgrade_vip_page.dart';
 import '../../auth/pages/change_password_page.dart';
-import 'dart:ui'; // Cần import để dùng ImageFilter
+import 'dart:ui';
 
 final vipBadgeGradient = const LinearGradient(
   begin: Alignment.topLeft,
@@ -133,8 +133,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          // Color(0xFF4A90E2), // xanh dương hơi đậm
-                          // Color(0xFF357ABD), xanh dương đậm hơn một chút
                           Colors.black, // hoặc Color(0xFF000000)
                           Colors.grey, // xám nhạt
                         ],
@@ -420,13 +418,12 @@ class _ProfilePageState extends State<ProfilePage> {
                                 const SizedBox(height: 8),
                               ],
                               if (!isVip && !isPT) ...[
-                                const SizedBox(height: 12),
                                 SizedBox(
                                   width: double.infinity, // rộng full nếu muốn
                                   child: DecoratedBox(
                                     decoration: BoxDecoration(
                                       gradient: const LinearGradient(
-                                        colors: [Color(0xFF9C27B0), Color(0xFFE040FB)],
+                                        colors: [Color(0xFF8E24AA), Color(0xFFCE9FF8)],
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
                                       ),
@@ -445,7 +442,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                         );
                                       },
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.transparent, // để lộ gradient của DecoratedBox
+                                        backgroundColor: Colors.transparent,
                                         shadowColor: Colors.transparent,
                                         padding: const EdgeInsets.symmetric(vertical: 16),
                                         shape: RoundedRectangleBorder(
@@ -459,31 +456,53 @@ class _ProfilePageState extends State<ProfilePage> {
                                             if (states.contains(MaterialState.pressed)) {
                                               return Colors.deepPurple.shade300.withOpacity(0.5);
                                             }
-                                            return null; // để giữ transparent gradient khi không nhấn
+                                            return Colors.deepPurple.withOpacity(0.5); // để giữ transparent gradient khi không nhấn
                                           },
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 12),
-                                ElevatedButton.icon(
-                                  icon: const Icon(Icons.fitness_center),
-                                  label: const Text('Upgrade to PT', style: TextStyle(fontSize: 20)),
-                                  onPressed: () async {
-                                    await context.read<AuthBloc>().upgradeToPT();
-                                    await context.read<AuthBloc>().reloadCurrentUser();
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    backgroundColor: Colors.deepOrange,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
+                                const SizedBox(height: 14),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [Color(0xFFFF9800), Color(0xFFFF7043)],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
-                                    elevation: 5,
-                                    shadowColor: Colors.deepOrangeAccent.withOpacity(0.6),
-                                    textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                                    child: ElevatedButton.icon(
+                                      icon: const Icon(Icons.fitness_center),
+                                      label: const Text('Upgrade to PT', style: TextStyle(fontSize: 20)),
+                                      onPressed: () async {
+                                        await context.read<AuthBloc>().upgradeToPT();
+                                        await context.read<AuthBloc>().reloadCurrentUser();
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        shadowColor: Colors.transparent,
+                                        padding: const EdgeInsets.symmetric(vertical: 16),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        foregroundColor: Colors.white,
+                                        elevation: 5,
+                                        textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                                      ).copyWith(
+                                        backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+                                              (states) {
+                                            if (states.contains(MaterialState.pressed)) {
+                                              return Colors.deepOrange.shade300.withOpacity(0.5);
+                                            }
+                                            return Colors.deepOrange.withOpacity(0.5);
+                                          },
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -494,6 +513,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   // Achievement Button Section
+                  const SizedBox(height: 14),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: SizedBox(

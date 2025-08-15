@@ -32,7 +32,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           isVip: false,
           vipExpiry: null,
           activePlans: [],
-
           isPT: false,
           challenge: 1,
           phoneNumber: null,
@@ -123,6 +122,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         'isVip': user.isVip,
         'vipExpiry': user.vipExpiry?.toIso8601String(),
         'isPT': user.isPT,
+        'challenge': user.challenge,
         'phoneNumber': null,
         'bio': null,
         'location': null,

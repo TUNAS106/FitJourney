@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:timeago/timeago.dart' as timeago;
-
 import '../data/models/post.dart';
 import '../data/repositories/post_repository.dart';
 import '../widgets/comment_section.dart';

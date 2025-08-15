@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as path;
-
 
 Future<String?> uploadImageToCloudinary(XFile imageFile) async {
   const cloudName = 'dk6heghvz';        // ← Thay bằng tên của bạn

@@ -1,16 +1,10 @@
 import 'package:fitjourney/features/notebook/pages/pharmacy_page/pharmacy_category_page.dart';
 import 'package:flutter/material.dart';
 import 'encyclopedia_page/encyclopedia_list_page.dart';
-import 'whey_page/whey_list_page.dart';
-import 'package:fitjourney/features/notebook/data/exercises_data/exercises_model.dart';
-import 'exercise_page/exercise_list_page.dart';
 import 'package:fitjourney/features/notebook/pages/exercise_page/exercise_group_page.dart';
-import 'food_page/food_list_page.dart';
 import 'package:fitjourney/features/notebook/pages/whey_page/whey_brand_page.dart';
 import 'food_page/food_group_page.dart';
-import 'package:fitjourney/features/notebook/data/pharmacy_data/pharmacy_model.dart';
-import 'package:fitjourney/features/notebook/data/encyclopedia_data/encyclopedia_model.dart';
-import 'package:fitjourney/features/notebook/pages/pharmacy_page/pharmacy_category_page.dart';
+
 class NotebookScreen extends StatelessWidget {
   const NotebookScreen({super.key});
 

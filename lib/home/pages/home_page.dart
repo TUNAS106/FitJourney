@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fitjourney/features/social/pages/post_feed_screen.dart';
 import 'package:flutter/material.dart';
-import '../../features/AI_features/Ai_chat_screen.dart';
 import '../../features/chat/widget/chat_tab_widget.dart';
 import '../../features/more/pages/more_page.dart';
 import '../../features/notebook/pages/notebook_page.dart';
