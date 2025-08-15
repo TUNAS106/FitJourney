@@ -125,7 +125,7 @@ class _BodyMetricsFormState extends State<BodyMetricsForm> {
         if (widget.onSubmitted != null) {
           widget.onSubmitted!();
         }
-        Navigator.pop(context);
+        //Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Vui lòng nhập đầy đủ thông tin hợp lệ")),

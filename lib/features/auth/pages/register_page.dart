@@ -96,9 +96,10 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
             );
           }
           if (state is Authenticated) {
-            Navigator.pushReplacement(
+            Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (_) => HomePage()),
+                  (route) => false,
             );
           }
         },

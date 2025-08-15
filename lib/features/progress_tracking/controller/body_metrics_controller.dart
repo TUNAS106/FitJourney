@@ -109,7 +109,7 @@ Béo phì độ II (nguy cơ cao).
           .doc(user.uid)
           .collection('body_metrics')
           .add(metrics.toMap());
-
+      Navigator.pop(context); // Thêm dòng này
     } catch (e) {
       _showErrorDialog(context, e.toString());
     }
@@ -215,10 +215,14 @@ Béo phì độ II (nguy cơ cao).
           content: const Text('Bạn chưa nhập chỉ số BMI lần nào. Vui lòng nhập để theo dõi sức khỏe.'),
           actions: [
             TextButton(
+              child: const Text('Để sau'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            TextButton(
               child: const Text('Nhập ngay'),
               onPressed: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => BodyMetricsFormPage(onProgressUpdated: () {  },)));
+                //Navigator.pop(context);
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => BodyMetricsFormPage(onProgressUpdated: () {  },)));
               },
             ),
           ],
@@ -230,8 +234,10 @@ Béo phì độ II (nguy cơ cao).
     final lastMetrics = metrics.last;
     // Lấy chỉ số BMI gần nhất (theo timestamp cuối cùng)
     final daysSinceLast = DateTime.now().difference(lastMetrics.timestamp).inDays;
+    //final hoursSinceLast = DateTime.now().difference(lastMetrics.timestamp).inHours;
+    //final secondsSinceLast = DateTime.now().difference(lastMetrics.timestamp).inSeconds;
     //final minutesSinceLast = DateTime.now().difference(lastMetrics.timestamp).inMinutes;
-    if (daysSinceLast  >= 7) {
+    if (daysSinceLast  >=7) {
       // Hiển thị dialog nhắc nhở
       await showDialog(
         context: context,
