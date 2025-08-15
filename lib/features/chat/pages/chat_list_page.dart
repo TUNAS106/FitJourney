@@ -1,4 +1,3 @@
-// screens/chat_list_screen.dart - Danh sách chat cho PT
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../auth/bloc/auth_state.dart';

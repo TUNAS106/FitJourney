@@ -1,5 +1,3 @@
-
-
 class Achievement {
   final int id; // thứ tự challenge
   final String description;

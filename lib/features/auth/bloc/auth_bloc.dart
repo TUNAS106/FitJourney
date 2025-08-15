@@ -1,5 +1,4 @@
 import 'package:bloc/bloc.dart';
-
 import '../../../services/firebase_services.dart';
 import '../data/models/User.dart';
 import 'auth_event.dart';

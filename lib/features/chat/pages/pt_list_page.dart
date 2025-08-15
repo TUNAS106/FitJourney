@@ -2,14 +2,12 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../../auth/bloc/auth_state.dart';
 import '../../auth/data/models/user.dart' as app;
 import '../../auth/bloc/auth_bloc.dart';
 import '../services/chat_services.dart';
 import 'chat_screen.dart';
 
-import 'package:fitjourney/features/chat/pages/ui_kit.dart';
 
 class PTListScreen extends StatelessWidget {
   const PTListScreen({super.key});
