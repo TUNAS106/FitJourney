@@ -27,7 +27,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  // NEW: UI states (chỉ giao diện)
+  // UI-only state
   bool _showJumpToBottom = false;
   double _wallpaperOpacity = 0.88; // 0.70 -> mờ ít, 0.95 -> mờ nhiều
 
@@ -43,13 +43,24 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  void _cycleWallpaperOpacity() { // NEW
+  void _cycleWallpaperOpacity() {
     setState(() {
-      // các nấc opacity đẹp mắt
       const steps = [0.78, 0.84, 0.88, 0.92];
       final i = steps.indexWhere((v) => (v - _wallpaperOpacity).abs() < 0.02);
       _wallpaperOpacity = steps[(i + 1) % steps.length];
     });
+  }
+
+  // ===== mở bottom-sheet BẢNG VẼ (UI only) =====
+  void _openSketchTools() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => const _SketchToolsSheet(),
+    );
   }
 
   @override
@@ -64,19 +75,21 @@ class _ChatScreenState extends State<ChatScreen> {
           flexibleSpace: Container(decoration: G.gradientAppbar()),
           foregroundColor: Colors.white,
           titleSpacing: 0,
-          shape: const RoundedRectangleBorder( // NEW: bo đáy app bar
+          shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
           ),
           title: Row(
             children: [
               const SizedBox(width: 6),
-              Stack( // NEW: avatar + chấm online
+              Stack(
                 children: [
                   G.avatar(widget.receiverUser.avatarUrl, size: 40),
                   Positioned(
-                    right: 0, bottom: 0,
+                    right: 0,
+                    bottom: 0,
                     child: Container(
-                      width: 10, height: 10,
+                      width: 10,
+                      height: 10,
                       decoration: BoxDecoration(
                         color: Colors.greenAccent,
                         shape: BoxShape.circle,
@@ -90,8 +103,10 @@ class _ChatScreenState extends State<ChatScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.receiverUser.name,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                  Text(
+                    widget.receiverUser.name,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
                   if (widget.receiverUser.isPT)
                     const Text('Huấn luyện viên',
                         style: TextStyle(fontSize: 14, color: Colors.white70)),
@@ -99,40 +114,76 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ],
           ),
+
+          // ===== ACTIONS =====
           actions: [
-            IconButton( // NEW: đổi độ mờ hình nền
-              icon: const Icon(Icons.color_lens_outlined, size: 24),
-              tooltip: 'Đổi độ mờ hình nền',
-              onPressed: _cycleWallpaperOpacity,
-            ),
-            IconButton( // NEW: video call UI
+            IconButton( // video (UI)
               icon: const Icon(Icons.videocam_outlined, size: 26),
               tooltip: 'Gọi video',
               onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Gọi video – sắp ra mắt')),
               ),
             ),
-            IconButton(
+            IconButton( // voice (UI)
               icon: const Icon(Icons.call_outlined, size: 26),
               tooltip: 'Gọi thoại',
               onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Gọi – sắp ra mắt')),
               ),
             ),
+            // ===== Menu 3 chấm: đưa Bảng vẽ + Đổi độ mờ hình nền vào đây =====
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, size: 24),
-              onSelected: (v) => ScaffoldMessenger.of(context)
-                  .showSnackBar(SnackBar(content: Text('$v – sắp ra mắt'))),
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'Tìm trong cuộc trò chuyện', child: Text('Tìm trong cuộc trò chuyện')),
-                PopupMenuItem(value: 'Tắt thông báo', child: Text('Tắt thông báo')),
-                PopupMenuItem(value: 'Đổi hình nền', child: Text('Đổi hình nền')),
-                PopupMenuItem(value: 'Báo cáo', child: Text('Báo cáo')),
+              onSelected: (v) {
+                switch (v) {
+                  case 'bangve':
+                    _openSketchTools();
+                    break;
+                  case 'opacity':
+                    _cycleWallpaperOpacity();
+                    break;
+                  case 'find':
+                  case 'mute':
+                  case 'wallpaper':
+                  case 'report':
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('$v – sắp ra mắt')),
+                    );
+                    break;
+                }
+              },
+              itemBuilder: (context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem(
+                  value: 'bangve',
+                  child: Text('Bảng vẽ'),
+                ),
+                const PopupMenuItem(
+                  value: 'opacity',
+                  child: Text('Đổi độ mờ hình nền'),
+                ),
+                const PopupMenuDivider(),
+                const PopupMenuItem(
+                  value: 'find',
+                  child: Text('Tìm trong cuộc trò chuyện'),
+                ),
+                const PopupMenuItem(
+                  value: 'mute',
+                  child: Text('Tắt thông báo'),
+                ),
+                const PopupMenuItem(
+                  value: 'wallpaper',
+                  child: Text('Đổi hình nền'),
+                ),
+                const PopupMenuItem(
+                  value: 'report',
+                  child: Text('Báo cáo'),
+                ),
               ],
             ),
           ],
         ),
       ),
+
       body: Stack(
         children: [
           // Nền
@@ -166,7 +217,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       );
                     }
 
-                    // NEW: RefreshIndicator chỉ để hiệu ứng (không đổi logic)
                     return RefreshIndicator(
                       onRefresh: () async => Future.delayed(const Duration(milliseconds: 500)),
                       child: ListView.builder(
@@ -177,7 +227,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         itemBuilder: (context, index) {
                           final m = messages[index];
 
-                          // Chip ngày
+                          // Hiển thị chip ngày khi đổi ngày
                           bool showDateDivider = false;
                           if (index == messages.length - 1) {
                             showDateDivider = true;
@@ -192,7 +242,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               if (state is! Authenticated) return const SizedBox.shrink();
                               final isMe = m.senderId == state.user.id;
 
-                              // NEW: bubble kính mờ cho bên đối phương
+                              // Bubble
                               Widget bubble = Container(
                                 constraints: BoxConstraints(
                                   maxWidth: MediaQuery.of(context).size.width * 0.76,
@@ -254,10 +304,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                 ),
                               );
 
+                              // Làm mờ nền phía sau bubble của đối phương
                               if (!isMe) {
                                 bubble = ClipRRect(
                                   borderRadius: const BorderRadius.all(Radius.circular(18)),
-                                  child: BackdropFilter( // làm mờ nền phía sau bubble
+                                  child: BackdropFilter(
                                     filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                                     child: bubble,
                                   ),
@@ -276,7 +327,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                       const SizedBox(width: 8),
                                     ],
                                     GestureDetector(
-                                      onLongPress: () { // NEW: menu nhanh (UI)
+                                      onLongPress: () {
+                                        // menu nhanh (UI only)
                                         showModalBottomSheet(
                                           context: context,
                                           shape: const RoundedRectangleBorder(
@@ -284,9 +336,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                           ),
                                           builder: (_) => SafeArea(
                                             child: Wrap(children: const [
-                                              ListTile(leading: Icon(Icons.copy), title: Text('Sao chép')),
-                                              ListTile(leading: Icon(Icons.reply), title: Text('Trả lời')),
-                                              ListTile(leading: Icon(Icons.forward), title: Text('Chuyển tiếp')),
+                                              ListTile(leading: Icon(Icons.copy),   title: Text('Sao chép')),
+                                              ListTile(leading: Icon(Icons.reply),  title: Text('Trả lời')),
+                                              ListTile(leading: Icon(Icons.forward),title: Text('Chuyển tiếp')),
                                               Divider(height: 0),
                                               ListTile(leading: Icon(Icons.delete_outline), title: Text('Xoá')),
                                             ]),
@@ -301,7 +353,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     ),
                                     if (isMe) ...[
                                       const SizedBox(width: 8),
-                                      G.avatar((state).user.avatarUrl, size: 28),
+                                      G.avatar(state.user.avatarUrl, size: 28),
                                     ],
                                   ],
                                 ),
@@ -345,7 +397,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
 
-              // Input bar
+              // ===== Input bar =====
               SafeArea(
                 top: false,
                 child: Padding(
@@ -398,7 +450,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ],
           ),
 
-          if (_showJumpToBottom) // NEW
+          if (_showJumpToBottom)
             Positioned(
               right: 16,
               bottom: 96,
@@ -408,9 +460,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: const Icon(Icons.arrow_downward, color: Colors.white),
                 onPressed: () {
                   if (_scrollController.hasClients) {
-                    _scrollController.animateTo(0,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOut);
+                    _scrollController.animateTo(
+                      0,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                    );
                   }
                 },
               ),
@@ -434,9 +488,11 @@ class _ChatScreenState extends State<ChatScreen> {
         content,
       );
       if (_scrollController.hasClients) {
-        _scrollController.animateTo(0,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut);
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -459,5 +515,88 @@ class _ChatScreenState extends State<ChatScreen> {
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+}
+
+/// ================== BOTTOM-SHEET BẢNG VẼ (UI ONLY) ==================
+class _SketchToolsSheet extends StatelessWidget {
+  const _SketchToolsSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 44,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: const [
+                _Tool(icon: Icons.brush, label: 'Cọ vẽ'),
+                _Tool(icon: Icons.auto_fix_high, label: 'Màu'),
+                _Tool(icon: Icons.linear_scale, label: 'Độ dày'),
+                _Tool(icon: Icons.cleaning_services_outlined, label: 'Tẩy'),
+                _Tool(icon: Icons.undo, label: 'Hoàn tác'),
+                _Tool(icon: Icons.redo, label: 'Làm lại'),
+                _Tool(icon: Icons.layers_clear, label: 'Xoá hết'),
+                _Tool(icon: Icons.image_outlined, label: 'Chèn ảnh'),
+                _Tool(icon: Icons.save_alt, label: 'Lưu'),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Tool extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _Tool({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('$label – sắp ra mắt'))),
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        width: 86,
+        height: 76,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.black12, width: 0.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(.06),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: AppColors.blueTop),
+            const SizedBox(height: 6),
+            Text(label, style: const TextStyle(fontSize: 12)),
+          ],
+        ),
+      ),
+    );
   }
 }
