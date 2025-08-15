@@ -252,9 +252,9 @@ class PTListScreen extends StatelessWidget {
                                             child: Column(
                                               crossAxisAlignment:
                                               CrossAxisAlignment.start,
-                                              children: const [
+                                              children:  [
                                                 // tên
-                                                _PTName(),
+                                                _PTName(pt.name),
                                                 SizedBox(height: 4),
                                                 Text(
                                                   'Huấn luyện viên chuyên nghiệp',
@@ -353,24 +353,21 @@ class PTListScreen extends StatelessWidget {
   }
 }
 
-/// Tên PT to, đậm – tách riêng để code gọn
 class _PTName extends StatelessWidget {
-  const _PTName();
+  final String name;
+  const _PTName(this.name, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Lấy tên từ ListTile hiện tại bằng InheritedWidget là dư thừa,
-    // nên để parent truyền Text trực tiếp. Ở đây demo đơn giản:
-    return DefaultTextStyle.merge(
+    return Text(
+      name.isNotEmpty ? name : 'Huấn luyện viên',
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       style: const TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w800,
         color: Color(0xFF102027),
       ),
-      child: Builder(builder: (_) {
-        // Parent đã set Text trực tiếp phía trên (const _PTName() chỉ giữ style).
-        return const Text.rich(TextSpan(text: ''));
-      }),
     );
   }
 }
